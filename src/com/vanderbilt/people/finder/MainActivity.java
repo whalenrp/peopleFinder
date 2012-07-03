@@ -21,7 +21,7 @@ public class MainActivity extends FragmentActivity
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(getActivity(), 
 			android.R.layout.simple_list_item_2, null, 
-			new String[] {Contract.USERNAME, Contract.IP_ADDRESS},
+			new String[] {Contract.USERNAME, Contract.IP_ADDRESS}, // replace these
 			new int[] {android.R.id.text1, android.R.id.text2}, 0);
 		setListAdapter(mAdapter);
 
@@ -30,12 +30,13 @@ public class MainActivity extends FragmentActivity
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args){
+		/* Fill in these parameters */
 		return new CursorLoader(this, 
 			Contract.URI,// URI
-			projection,
-			selection,
-			seletionArgs,
-			sortOrder);
+			projection,// needed fields: _id, username, and IP
+			null, // Selection : null defaults to all entries
+			null, // SelectionArgs
+			sortOrder); // ORDER BY 
 			
 	}
 
