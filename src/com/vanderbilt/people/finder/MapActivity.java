@@ -12,6 +12,5 @@ public class MapActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
     }
 }
