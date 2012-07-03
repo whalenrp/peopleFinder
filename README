@@ -1,0 +1,14 @@
+A test project for Professor Schmidt's upcoming Android Operating Systems class.
+
+The goal of this project is to demonstrate uses of the following:
+	1) Content Providers
+	2) Services
+	3) GPS/maps
+	4) Service Binder
+	5) SyncAdapters (optional)
+
+To do this, we have created a server that will ultimately serve as a directory
+service. When any given phone connects to it, it will be given a list of IP
+addresses of other phones to communicate with. The phone can then post updates
+to its current position directly to the other phones without having to 
+connect to the main server. 
