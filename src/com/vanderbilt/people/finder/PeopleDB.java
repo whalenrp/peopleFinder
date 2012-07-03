@@ -28,7 +28,7 @@ public class PeopleDB extends SQLiteOpenHelper{
     @Override 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     { 
-      db.execSQL("DROP TABLE IF EXISTS location"); 
+      db.execSQL("DROP TABLE IF EXISTS locations"); 
       onCreate(db); 
     }
 }

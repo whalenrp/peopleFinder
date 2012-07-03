@@ -1,5 +1,7 @@
 package com.vanderbilt.people.finder;
 
+import java.util.List;
+
 import com.vanderbilt.people.finder.Provider.Constants;
 
 import android.support.v4.app.FragmentActivity;
@@ -7,14 +9,19 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.widget.ListView;
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.NAME, Constants.IP };
+	private static final String TAG = "MainActivity";
 	
 	private SimpleCursorAdapter mAdapter;
 	private ListView mList;
@@ -58,4 +65,45 @@ public class MainActivity extends FragmentActivity
 	public void onLoaderReset(Loader<Cursor> loader){
 		mAdapter.swapCursor(null);
 	}
+	
+	private class DownloadDataTask extends AsyncTask<Void, Void, List<DataModel>>
+	{
+
+		protected List<DataModel> doInBackground(Void... params) 
+		{
+			// We don't have our own data key yet, so pass null.
+			return NetworkUtilities.getPeerUpdates(null);
+		}
+		
+		protected void onPostExecute(List<DataModel> list)
+		{
+			for (DataModel d : list)
+			{
+				Cursor c = getContentResolver().query(Constants.CONTENT_URI,
+										   new String[] { Constants.SERVER_KEY },
+										   Constants.SERVER_KEY+"="+d.getKey(), null, null);
+				
+				ContentValues cv = new ContentValues(6);
+				cv.put(Constants.SERVER_KEY, d.getKey());
+				cv.put(Constants.NAME, d.getName());
+				cv.put(Constants.IP, d.getIpAddress());
+				cv.put(Constants.LATITUDE, d.getLatitude());
+				cv.put(Constants.LONGITUDE, d.getLongitude());
+				cv.put(Constants.MESSAGE, d.getStatus());
+				
+				if (c.getCount() == 0)
+				{
+					Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
+					Log.i(TAG, "Inserted: " + uri.toString());
+				}
+				else
+				{
+					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+														Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.i(TAG, "Updated " + i + "item(s).");
+				}
+			}
+		}
+	}
+
 }

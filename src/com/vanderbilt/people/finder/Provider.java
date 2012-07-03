@@ -20,7 +20,7 @@ public class Provider extends ContentProvider {
 
     public static final Uri CONTENT_URI=
         Uri.parse("content://com.location.Provider/locations");
-    static final String TEXT = "text";
+    static final String MESSAGE = "message";
     static final String NAME = "name";
     static final String ID = "id";
     static final String SERVER_KEY = "server_key";
