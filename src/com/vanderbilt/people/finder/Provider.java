@@ -15,13 +15,14 @@ import android.text.TextUtils;
 public class Provider extends ContentProvider {
   private static final String TABLE="locations";
 
+ 
   public static final class Constants implements BaseColumns {
 
     public static final Uri CONTENT_URI=
-        Uri.parse("content://com.vanderbilt.people.finderProvider/Constants");
+        Uri.parse("content://com.location.Provider/locations");
     static final String TEXT = "text";
     static final String NAME = "name";
-    static final String ID = "_id";
+    static final String ID = "id";
     static final String SERVER_KEY = "server_key";
     static final String IP = "ip";
     public static final String TITLE="title";
@@ -35,7 +36,9 @@ public class Provider extends ContentProvider {
   @Override
   public boolean onCreate() 
   {
+	  
 	  db=new PeopleDB(getContext());
+	  db.getWritableDatabase();
 	  return((db == null) ? false : true);
   }
   
