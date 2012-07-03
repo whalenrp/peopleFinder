@@ -1,16 +1,21 @@
 package com.vanderbilt.people.finder;
 
+import com.vanderbilt.people.finder.Provider.Constants;
+
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.CursorLoader;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.app.LoaderManager.LoaderManager;
-import android.support.v4.app.widget.SimpleCursorAdapter;
+import android.support.v4.content.Loader;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.widget.ListView;
+import android.database.Cursor;
 import android.os.Bundle;
 
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
+	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.NAME, Constants.IP };
+	
 	private SimpleCursorAdapter mAdapter;
 	private ListView mList;
 
@@ -23,24 +28,24 @@ public class MainActivity extends FragmentActivity
 		mList = (ListView)findViewById(R.id.list);
 
 		// Set up Adapter
-		mAdapter = new SimpleCursorAdapter(getActivity(), 
+		mAdapter = new SimpleCursorAdapter(this, 
 			android.R.layout.simple_list_item_2, null, 
-			new String[] {Contract.USERNAME, Contract.IP_ADDRESS}, // replace these
+			new String[] {Constants.NAME, Constants.IP}, // replace these
 			new int[] {android.R.id.text1, android.R.id.text2}, 0);
-		list.setAdapter(mAdapter);
+		mList.setAdapter(mAdapter);
 
-		getSupportFragmentManager().initLoader(0, null, this);	
+		getSupportLoaderManager().initLoader(0, null, this);
     }
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args){
 		/* Fill in these parameters */
 		return new CursorLoader(this, 
-			Contract.URI,// URI
-			projection,// needed fields: _id, username, and IP
+			Constants.CONTENT_URI,// URI
+			PROJECTION,// needed fields: _id, username, and IP
 			null, // Selection : null defaults to all entries
 			null, // SelectionArgs
-			sortOrder); // ORDER BY 
+			Constants.DEFAULT_SORT_ORDER); // ORDER BY 
 			
 	}
 
