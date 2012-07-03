@@ -1,15 +1,18 @@
 package com.vanderbilt.people.finder;
 
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.app.LoaderManager.LoaderManager;
 import android.support.v4.app.widget.SimpleCursorAdapter;
+import android.widget.ListView;
 import android.os.Bundle;
 
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private SimpleCursorAdapter mAdapter;
+	private ListView mList;
 
     /** Called when the activity is first created. */
     @Override
@@ -17,13 +20,14 @@ public class MainActivity extends FragmentActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+		mList = (ListView)findViewById(R.id.list);
 
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(getActivity(), 
 			android.R.layout.simple_list_item_2, null, 
 			new String[] {Contract.USERNAME, Contract.IP_ADDRESS}, // replace these
 			new int[] {android.R.id.text1, android.R.id.text2}, 0);
-		setListAdapter(mAdapter);
+		list.setAdapter(mAdapter);
 
 		getSupportFragmentManager().initLoader(0, null, this);	
     }
