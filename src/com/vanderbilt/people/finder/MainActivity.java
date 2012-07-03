@@ -1,9 +1,12 @@
 package com.vanderbilt.people.finder;
 
-import android.app.ListActivity;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.app.LoaderManager.LoaderManager;
+import android.support.v4.app.widget.SimpleCursorAdapter;
 import android.os.Bundle;
 
-public class MainActivity extends ListActivity
+public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private SimpleCursorAdapter mAdapter;
@@ -22,7 +25,7 @@ public class MainActivity extends ListActivity
 			new int[] {android.R.id.text1, android.R.id.text2}, 0);
 		setListAdapter(mAdapter);
 
-		getLoaderManager().initLoader(0, null, this);	
+		getSupportFragmentManager().initLoader(0, null, this);	
     }
 
 	@Override
