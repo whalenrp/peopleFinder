@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.vanderbilt.people.finder.Provider.Constants;
 
+import android.content.Intent;
+import android.view.View;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -46,6 +48,11 @@ public class MainActivity extends FragmentActivity
 
 		getSupportLoaderManager().initLoader(0, null, this);
     }
+
+	// Called when the button at the bottom of the screen is clicked
+	public void launchMap(View view){
+		startActivity( new Intent(this, LocationsActivity.class) );
+	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args){
