@@ -22,7 +22,7 @@ public class PeopleDB extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-	db.execSQL("CREATE TABLE locations (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, name TEXT, server_key LONG, ip TEXT, longitude FLOAT, latitude FLOAT);"); 
+	db.execSQL("CREATE TABLE locations (_id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, name TEXT, server_key LONG, ip TEXT, longitude FLOAT, latitude FLOAT);"); 
     }
     
     @Override 

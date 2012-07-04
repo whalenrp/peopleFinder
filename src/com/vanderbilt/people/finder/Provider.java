@@ -1,6 +1,7 @@
 package com.vanderbilt.people.finder;
 
 
+import android.content.UriMatcher;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -14,21 +15,32 @@ import android.text.TextUtils;
 
 public class Provider extends ContentProvider {
   private static final String TABLE="locations";
+  private static final int LOCATIONS = 1;
+  private static final int LOCATION_ID = 2;
+  private static final UriMatcher MATCHER;
 
  
   public static final class Constants implements BaseColumns {
 
     public static final Uri CONTENT_URI=
-        Uri.parse("content://com.location.Provider/locations");
+        Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
     static final String MESSAGE = "message";
     static final String NAME = "name";
-    static final String ID = "id";
+    static final String ID = "_id";
     static final String SERVER_KEY = "server_key";
     static final String IP = "ip";
     public static final String TITLE="title";
     static final String LONGITUDE = "longitude";
     static final String LATITUDE = "latitude";
-	public static final String DEFAULT_SORT_ORDER = "title";
+	public static final String DEFAULT_SORT_ORDER = NAME;
+  }
+
+  static{
+		MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+		MATCHER.addURI("com.vanderbilt.people.finder.Provider", 
+			"locations", LOCATIONS);
+		MATCHER.addURI("com.vanderbilt.people.finder.Provider", 
+			"locations/#", LOCATION_ID);
   }
 
   private PeopleDB db = null;
@@ -69,7 +81,10 @@ public class Provider extends ContentProvider {
   @Override
   public String getType(Uri url) 
   {
-	  return("com.location.item/location");
+	  if (isCollectionUri(url))
+	 	return("vnd.people.cursor.dir/locations");
+	  else
+	 	return("vnd.people.cursor.item/locations");
   }
   
 
@@ -106,5 +121,8 @@ public class Provider extends ContentProvider {
 	  return(count);
   }
 
+  private boolean isCollectionUri(Uri url){
+      return (MATCHER.match(url) == LOCATIONS);
+  }
   
 }

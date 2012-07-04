@@ -23,6 +23,7 @@ public class MainActivity extends FragmentActivity
 	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.NAME, Constants.IP };
 	private static final String TAG = "MainActivity";
 	
+	private DownloadDataTask downloader = new DownloadDataTask();
 	private SimpleCursorAdapter mAdapter;
 	private ListView mList;
 
@@ -37,23 +38,23 @@ public class MainActivity extends FragmentActivity
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(this, 
 			android.R.layout.simple_list_item_2, null, 
-			new String[] {Constants.NAME, Constants.IP}, // replace these
+			new String[] {Constants.NAME, Constants.IP}, 
 			new int[] {android.R.id.text1, android.R.id.text2}, 0);
 		mList.setAdapter(mAdapter);
+		
+		downloader.execute();
 
 		getSupportLoaderManager().initLoader(0, null, this);
     }
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args){
-		/* Fill in these parameters */
 		return new CursorLoader(this, 
 			Constants.CONTENT_URI,// URI
 			PROJECTION,// needed fields: _id, username, and IP
 			null, // Selection : null defaults to all entries
 			null, // SelectionArgs
 			Constants.DEFAULT_SORT_ORDER); // ORDER BY 
-			
 	}
 
 	@Override
@@ -77,8 +78,10 @@ public class MainActivity extends FragmentActivity
 		
 		protected void onPostExecute(List<DataModel> list)
 		{
+			Log.i("MainActivity", "List size: " + list.size());
 			for (DataModel d : list)
 			{
+				
 				Cursor c = getContentResolver().query(Constants.CONTENT_URI,
 										   new String[] { Constants.SERVER_KEY },
 										   Constants.SERVER_KEY+"="+d.getKey(), null, null);
