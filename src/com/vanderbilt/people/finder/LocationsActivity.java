@@ -9,11 +9,24 @@ import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 import com.google.android.maps.MyLocationOverlay;
 import android.graphics.drawable.Drawable;
+import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import android.util.Log;
@@ -44,9 +57,65 @@ public class LocationsActivity extends MapActivity
 		initMap(myInfo);
 
 		updateBtn.setOnClickListener(new View.OnClickListener(){
+			
 			public void onClick(View v){
-				
+		        LocationManager myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		        Criteria locationCritera = new Criteria();
+		        locationCritera.setAccuracy(Criteria.ACCURACY_FINE);
+		        locationCritera.setAltitudeRequired(false);
+		        locationCritera.setBearingRequired(false);
+		        String provider = myLocalManager.getBestProvider(locationCritera, true);
+		        myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0, onLocationChange);
 			}
+			LocationListener onLocationChange=new LocationListener() {
+		        public void onLocationChanged(Location loc) {
+		            double latitude = loc.getLatitude();
+		            double longitude = loc.getLongitude();		 
+
+		            Log.i("UPDATE", latitude + " " + longitude);
+					Socket MyClient = null;
+			    	DataInputStream input = null;
+			    	PrintStream output = null;
+				try
+				    {
+					//for(int i = 0; i < friends.length(); ++i){
+					//    Myclient MyClient = new Socket(friends[i], 5567);
+					MyClient = new Socket("129.59.69.68", 5567);
+					Log.i("UPDATE", "HI");
+					input = new DataInputStream(MyClient.getInputStream());
+					output = new PrintStream(MyClient.getOutputStream());
+					
+					output.println("update" + " localhost "+ latitude + " " + longitude);
+					output.close();
+					input.close();
+					MyClient.close();
+					//}
+				    }
+				
+				catch (IOException ioe) 
+				    {
+					System.out.println("IOException on socket listen: " + ioe);
+					ioe.printStackTrace();
+				    }
+					
+		        }
+		         
+		        public void onProviderDisabled(String provider) 
+		        {
+		        	//Not needed
+		        }
+		         
+		        public void onProviderEnabled(String provider) 
+		        {
+		        	//Not needed
+		        }
+		         
+		        public void onStatusChanged(String provider, int status, Bundle extras)
+		        {
+		        	//Not needed
+		        }
+		    };
+		
 		});
 
 		refreshBtn.setOnClickListener(new View.OnClickListener(){
@@ -124,3 +193,101 @@ public class LocationsActivity extends MapActivity
 		return false;
 	}
 }
+	
+/*
+	private class SendLocation extends AsyncTask<Void, Void, Void>
+	{
+		//private double longitude, latitude;
+		protected Void doInBackground(Void... params) 
+		{
+			/*
+			Socket MyClient = null;
+	    	DataInputStream input = null;
+	    	PrintStream output = null;
+		try
+		    {
+			//for(int i = 0; i < friends.length(); ++i){
+			//    Myclient MyClient = new Socket(friends[i], 5567);
+			MyClient = new Socket("129.59.69.68", 5567);
+			Log.i("LOOKHERE", "HI");
+			input = new DataInputStream(MyClient.getInputStream());
+			output = new PrintStream(MyClient.getOutputStream());
+			
+	        LocationManager myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+	        Criteria locationCritera = new Criteria();
+	        locationCritera.setAccuracy(Criteria.ACCURACY_FINE);
+	        locationCritera.setAltitudeRequired(false);
+	        locationCritera.setBearingRequired(false);
+	        String provider = myLocalManager.getBestProvider(locationCritera, true);
+	        myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0, onLocationChange);
+/*
+			output.println("update" + " localhost "+ latitude + " " + longitude);
+			output.close();
+			input.close();
+			MyClient.close();
+			//}
+		    }
+		
+		catch (IOException ioe) 
+		    {
+			System.out.println("IOException on socket listen: " + ioe);
+			ioe.printStackTrace();
+		    }	
+		return null;
+		}
+		
+		LocationListener onLocationChange=new LocationListener() {
+	        public void onLocationChanged(Location loc) {
+	            double latitude = loc.getLatitude();
+	            double longitude = loc.getLongitude();		 
+
+	            Log.i("UPDATE", latitude + " " + longitude);
+				Socket MyClient = null;
+		    	DataInputStream input = null;
+		    	PrintStream output = null;
+			try
+			    {
+				//for(int i = 0; i < friends.length(); ++i){
+				//    Myclient MyClient = new Socket(friends[i], 5567);
+				MyClient = new Socket("129.59.69.68", 5567);
+				Log.i("UPDATE", "HI");
+				input = new DataInputStream(MyClient.getInputStream());
+				output = new PrintStream(MyClient.getOutputStream());
+				
+				output.println("update" + " localhost "+ latitude + " " + longitude);
+				output.close();
+				input.close();
+				MyClient.close();
+				//}
+			    }
+			
+			catch (IOException ioe) 
+			    {
+				System.out.println("IOException on socket listen: " + ioe);
+				ioe.printStackTrace();
+			    }
+				
+	        }
+	         
+	        public void onProviderDisabled(String provider) 
+	        {
+	        	//Not needed
+	        }
+	         
+	        public void onProviderEnabled(String provider) 
+	        {
+	        	//Not needed
+	        }
+	         
+	        public void onStatusChanged(String provider, int status, Bundle extras)
+	        {
+	        	//Not needed
+	        }
+	    };
+		}
+		
+		protected void onPostExecute(Void nothing)
+		{
+		}
+	}*/
+
