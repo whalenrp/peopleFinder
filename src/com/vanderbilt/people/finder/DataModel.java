@@ -3,6 +3,10 @@ package com.vanderbilt.people.finder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.vanderbilt.people.finder.Provider.Constants;
+
+import android.content.ContentValues;
+
 public final class DataModel 
 {
 	private final Long key;
@@ -11,6 +15,7 @@ public final class DataModel
 	private double longitude;
 	private String status;
 	private String name;
+	private final boolean markedRemoved;
 	
 	/**
 	 * Simple default constructor. Used for composing
@@ -21,6 +26,7 @@ public final class DataModel
 	{
 		key = null;
 		ipAddress = null;
+		markedRemoved = false;
 	}
 	
 	/**
@@ -33,6 +39,7 @@ public final class DataModel
 	{
 		key = skey;
 		ipAddress = null;
+		markedRemoved = false;
 	}
 	
 	/**
@@ -51,6 +58,7 @@ public final class DataModel
 		longitude = o.getDouble("long");
 		status = o.getString("status");
 		name = o.getString("name");
+		markedRemoved = o.getBoolean("removed");
 	}
 	
 	/**
@@ -72,9 +80,33 @@ public final class DataModel
 		o.put("long", longitude);
 		o.put("status", status);
 		o.put("name", name);
+		o.put("removed", markedRemoved);
 		return o;
 	}
 	
+	/**
+	 * Returns the full data model as a Content
+	 * Values object for easier interfacing with 
+	 * content provider services.
+	 * 
+	 * @return object containing all keys
+	 */
+	public ContentValues toContentValues()
+	{
+		ContentValues cv = new ContentValues();
+		cv.put(Constants.SERVER_KEY, key);
+		cv.put(Constants.NAME, name);
+		cv.put(Constants.IP, ipAddress);
+		cv.put(Constants.LATITUDE, latitude);
+		cv.put(Constants.LONGITUDE, longitude);
+		cv.put(Constants.MESSAGE, status);
+		return cv;
+	}
+	
+	public boolean isMarkedRemoved() {
+		return markedRemoved;
+	}
+
 	public double getLatitude() {
 		return latitude;
 	}

@@ -36,9 +36,11 @@ public final class NetworkUtilities
 	private static final String BASE_URL = "http://vuandroidserver.appspot.com";
 	private static final String DOWNLOAD = "/download";
 	private static final String UPLOAD = "/upload";
+	private static final String REMOVE = "/remove";
 	
 	private static final String GET_PARAM_SKEY = "?skey=";
 	private static final String POST_PARAM_JSON_PACKAGE = "json_package";
+	private static final String POST_PARAM_REMOVAL_KEY = "removal_key";
 	
 	private static HttpClient getHttpClient()
 	{
@@ -48,6 +50,37 @@ public final class NetworkUtilities
         HttpConnectionParams.setSoTimeout(params, 30 * 1000);
         ConnManagerParams.setTimeout(params, 30 * 1000);
         return httpClient;
+	}
+	
+	public static boolean requestRemoval(Long key)
+	{
+		String urlFull = BASE_URL + REMOVE;
+
+		HttpClient httpClient = getHttpClient();
+		try
+		{
+			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair(POST_PARAM_REMOVAL_KEY, key.toString()));
+			HttpEntity entity = new UrlEncodedFormEntity(params);
+			
+			final HttpPost httpPost = new HttpPost(urlFull);
+			httpPost.addHeader(entity.getContentType());
+		    httpPost.setEntity(entity);
+		    ResponseHandler<String> responseHandler = new BasicResponseHandler();
+		    String responseBody = httpClient.execute(httpPost, responseHandler);
+			JSONObject o = new JSONObject(responseBody);
+			return o.getBoolean("removed");
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			httpClient.getConnectionManager().shutdown();
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -115,6 +148,7 @@ public final class NetworkUtilities
 			
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String responseBody = httpClient.execute(httpget, responseHandler);
+			Log.d(TAG, responseBody);
 			JSONArray array = new JSONArray(responseBody);
 			
 			for (int i = 0; i < array.length(); i++)
@@ -125,6 +159,7 @@ public final class NetworkUtilities
 		}
 		catch (Exception e)
 		{
+			
 			e.printStackTrace();
 		}
 		finally

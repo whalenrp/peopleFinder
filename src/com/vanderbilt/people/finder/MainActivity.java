@@ -76,7 +76,6 @@ public class MainActivity extends FragmentActivity
 	
 	private class DownloadDataTask extends AsyncTask<Void, Void, List<DataModel>>
 	{
-
 		protected List<DataModel> doInBackground(Void... params) 
 		{
 			// We don't have our own data key yet, so pass null.
@@ -93,27 +92,29 @@ public class MainActivity extends FragmentActivity
 										   new String[] { Constants.SERVER_KEY },
 										   Constants.SERVER_KEY+"="+d.getKey(), null, null);
 				
-				ContentValues cv = new ContentValues(6);
-				cv.put(Constants.SERVER_KEY, d.getKey());
-				cv.put(Constants.NAME, d.getName());
-				cv.put(Constants.IP, d.getIpAddress());
-				cv.put(Constants.LATITUDE, d.getLatitude());
-				cv.put(Constants.LONGITUDE, d.getLongitude());
-				cv.put(Constants.MESSAGE, d.getStatus());
 				
+				
+				ContentValues cv = d.toContentValues();
 				if (c.getCount() == 0)
 				{
 					Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
-					Log.i(TAG, "Inserted: " + uri.toString());
+					Log.v(TAG, "Inserted: " + uri.toString());
+				}
+				else if (d.isMarkedRemoved())
+				{
+					int i = getContentResolver().delete(Constants.CONTENT_URI,
+														Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.v(TAG, "Deleted " + i + "item(s).");
 				}
 				else
 				{
 					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
 														Constants.SERVER_KEY+"="+d.getKey(), null);
-					Log.i(TAG, "Updated " + i + "item(s).");
+					Log.v(TAG, "Updated " + i + "item(s).");
 				}
+				
+				c.close();
 			}
 		}
 	}
-
 }
