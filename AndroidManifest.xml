@@ -15,7 +15,8 @@
                   android:label="@string/app_name">
         </activity>
 		<activity android:name="LocationsActivity"/>
-		<activity android:name="StartupActivity"></activity>
+		<activity android:name="StartupActivity"
+		    	  android:theme="@android:style/Theme.Dialog" />
 		<activity android:name="RootActivity">
 		    <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

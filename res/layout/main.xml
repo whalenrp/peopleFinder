@@ -25,12 +25,11 @@
 
     <EditText
         android:id="@+id/edit_text_status"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/name_label"
         android:layout_toLeftOf="@+id/ok_button"
         android:layout_toRightOf="@+id/status_label"
-        android:ems="10"
         android:inputType="textPersonName" />
 
     <Button
@@ -49,6 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/edit_text_status"
         android:layout_alignBottom="@+id/edit_text_status"
+        android:layout_alignParentLeft="true"
         android:layout_alignRight="@+id/name_label"
         android:text="Status:"
         android:textAppearance="?android:attr/textAppearanceMedium" />

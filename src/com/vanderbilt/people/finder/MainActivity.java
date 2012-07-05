@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity
     	if (c.moveToFirst())
     	{
     		nameLabel.setText(c.getString(c.getColumnIndex(Constants.NAME)));
-    		statusEditText.setText(c.getString(c.getColumnIndex(Constants.MESSAGE)));
+    		statusEditText.setHint(c.getString(c.getColumnIndex(Constants.MESSAGE)));
     	}
 		c.close();
 		
@@ -81,12 +81,16 @@ public class MainActivity extends FragmentActivity
 	public void submitStatus(View view)
 	{
 		String status = statusEditText.getText().toString();
-		ContentValues cv = new ContentValues(1);
-		cv.put(Constants.MESSAGE, status);
-		int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-				Constants.SERVER_KEY+"="+UserId.getId(this), null);
-		Log.d(TAG, "UserId -> " + UserId.getId(this));
-		Log.v(TAG, "Updated status for " + i + " item(s).");
+		if (!status.equals(""))
+		{
+			ContentValues cv = new ContentValues(1);
+			cv.put(Constants.MESSAGE, status);
+			int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+					Constants.SERVER_KEY+"="+UserId.getId(this), null);
+			Log.v(TAG, "Updated status for " + i + " item(s).");
+			statusEditText.setText("");
+			statusEditText.setHint(status);
+		}
 	}
 
 	@Override
@@ -94,7 +98,7 @@ public class MainActivity extends FragmentActivity
 		return new CursorLoader(this, 
 			Constants.CONTENT_URI,// URI
 			PROJECTION,// needed fields: _id, username, and IP
-			null, // Selection : null defaults to all entries
+			Constants.SERVER_KEY+"!="+UserId.getId(this), // Selection : get all peers
 			null, // SelectionArgs
 			Constants.DEFAULT_SORT_ORDER); // ORDER BY 
 	}
