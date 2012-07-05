@@ -19,7 +19,6 @@
             </intent-filter>
         </activity>
 		<activity android:name="LocationsActivity"/>
-		<service android:name="LocationResponder" /> 
 		
     </application>
 </manifest>

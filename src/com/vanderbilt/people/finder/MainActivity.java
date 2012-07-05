@@ -47,11 +47,6 @@ public class MainActivity extends FragmentActivity
 		downloader.execute();
 
 		getSupportLoaderManager().initLoader(0, null, this);
-		
-		//start the server for giving location information
-		Intent intent = new Intent(this, LocationResponder.class);
-		this.startService(intent);
-
     }
 
 	// Called when the button at the bottom of the screen is clicked
