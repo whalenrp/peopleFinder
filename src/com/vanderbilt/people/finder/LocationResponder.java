@@ -50,31 +50,47 @@ public class LocationResponder extends Service{
 	public void onStart(Intent intent, int startid) {
 		try 
 		{
-			while(true)
-			{	
-				Socket server = null;
-				server = listener.accept();
-				PrintWriter out = new PrintWriter(server.getOutputStream(), true);
-				DataInputStream in = new DataInputStream (server.getInputStream());
-				String command = in.readLine();
-				if(command.equals("location"))
-				{
-					LocationManager myLocalManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
-					Criteria locationCritera = new Criteria();
-					locationCritera.setAccuracy(Criteria.ACCURACY_FINE);
-					String provider = myLocalManager.getBestProvider(locationCritera, true);
-					Location location = myLocalManager.getLastKnownLocation(provider);
-					out.println(location.getLatitude());//query db for location
-					out.println(location.getLongitude());
-				}
-				out.close();
-				in.close();
-				server.close();
-			}
+		    Response myResponse = new Response();
+		    Thread t = new Thread(myResponse);
+		    t.start();
 		}
 		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}
 	}
+}
+
+class Response implements Runnable{
+
+    public void run () {
+	try {
+	    ServerSocket listener = new ServerSocket(port);
+	    while(true)
+		{	
+		    Socket server = null;
+		    server = listener.accept();
+		    PrintWriter out = new PrintWriter(server.getOutputStream(), true);
+		    DataInputStream in = new DataInputStream (server.getInputStream());
+		    String command = in.readLine();
+		    if(command.equals("location"))
+			{
+			    LocationManager myLocalManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+			    Criteria locationCritera = new Criteria();
+			    locationCritera.setAccuracy(Criteria.ACCURACY_FINE);
+			    String provider = myLocalManager.getBestProvider(locationCritera, true);
+			    Location location = myLocalManager.getLastKnownLocation(provider);
+			    out.println(location.getLatitude());//query db for location
+			    out.println(location.getLongitude());
+			}
+		    out.close();
+		    in.close();
+		    server.close();
+		}
+	}
+	catch (IOException e) 
+	    {
+		e.printStackTrace();
+	    }
+    }
 }
