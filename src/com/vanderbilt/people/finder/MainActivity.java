@@ -36,7 +36,7 @@ public class MainActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		mList = (ListView)findViewById(R.id.list);
-
+		
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(this, 
 			android.R.layout.simple_list_item_2, null, 
@@ -47,6 +47,11 @@ public class MainActivity extends FragmentActivity
 		downloader.execute();
 
 		getSupportLoaderManager().initLoader(0, null, this);
+		
+		//start the server for giving location information
+		Intent intent = new Intent(this, LocationResponder.class);
+		this.startService(intent);
+
     }
 
 	// Called when the button at the bottom of the screen is clicked
