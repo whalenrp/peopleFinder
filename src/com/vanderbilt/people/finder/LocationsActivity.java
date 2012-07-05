@@ -24,7 +24,7 @@ public class LocationsActivity extends MapActivity
 	private Button refreshBtn;
 	private MapView mapthumb;
 	private GeoPoint center;
-	//private MyLocationOverlay me = null;
+	private MyLocationOverlay me = null;
 
     /** Called when the activity is first created. */
     @Override
@@ -36,7 +36,6 @@ public class LocationsActivity extends MapActivity
 		updateBtn = (Button)findViewById(R.id.postPos);
 		refreshBtn = (Button)findViewById(R.id.refresh);
 		mapthumb = (MapView)findViewById(R.id.map);
-		//me = new MyLocationOverlay(this, mapthumb);
 
 		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
 			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
@@ -61,12 +60,12 @@ public class LocationsActivity extends MapActivity
 
 	public void onResume(){
 		super.onResume();
-		//me.enableMyLocation();
+		me.enableMyLocation();
 	}
 
 	public void onPause(){
 		super.onPause();
-		//me.disableMyLocation();
+		me.disableMyLocation();
 	}
 
 	private GeoPoint getPoint(double lat, double lon){
@@ -75,16 +74,19 @@ public class LocationsActivity extends MapActivity
 	}
 
 	private void initMap(Cursor c){
-		//if( me.enableMyLocation() ){
-			//mapthumb.getController().setCenter(me.getMyLocation());
-			mapthumb.getController().setZoom(0);
-			//add destination marker
-			Drawable marker = getResources().getDrawable(R.drawable.pushpin);
-			marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
-			mapthumb.getOverlays().add(new SiteOverlay(marker, c));
-			// Add location marker
-			//mapthumb.getOverlays().add(me);	
-		//}
+		me = new MyLocationOverlay(this, mapthumb);
+		mapthumb.getOverlays().add(me);	
+		me.runOnFirstFix(new Runnable() {
+			public void run() {
+				mapthumb.getController().animateTo(me.getMyLocation());
+				}
+		}); 
+		mapthumb.getController().setZoom(0);
+		//add destination marker
+		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
+		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
+		mapthumb.getOverlays().add(new SiteOverlay(marker, c));
+		// Add location marker
 	}
 
 	private class SiteOverlay extends ItemizedOverlay<OverlayItem>{
