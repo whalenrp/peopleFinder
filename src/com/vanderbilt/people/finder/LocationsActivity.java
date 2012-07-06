@@ -264,8 +264,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				null, null, null);
 
 			// Get device's IP address
-			WifiManager wim= (WifiManager) getSystemService(WIFI_SERVICE);
-			String myIp = Formatter.formatIpAddress(wim.getConnectionInfo().getIpAddress());
+			String myIp = getIpAddress();
 
 			// initialize Connect objects for every IP in the database
 			ArrayList<Connection> mPeers = new ArrayList<Connection>();
@@ -295,7 +294,27 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		public boolean isRunning(){
 			return isRunning;
 		}
+		
 	}
+    
+    public static String getipAddress() {
+            try {
+                for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                    NetworkInterface intf = en.nextElement();
+                    for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                        InetAddress inetAddress = enumIpAddr.nextElement();
+                        if (!inetAddress.isLoopbackAddress()) {
+                            String ipaddress=inetAddress.getHostAddress().toString();
+                            Log.e("ip address",""+ipaddress);
+                            return ipaddress;
+                        }
+                    }
+                }
+            } catch (SocketException ex) {
+                Log.e("Socket exception in GetIP Address of Utilities", ex.toString());
+            }
+            return null;
+    }
 
 	/**
 	 * Private helper class for managing individual connections.
@@ -345,4 +364,5 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			valid = false;
 		}
 	}
+    
 }
