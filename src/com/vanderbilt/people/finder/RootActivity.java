@@ -17,13 +17,15 @@ public class RootActivity extends Activity
 		
 		SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
 	    boolean presentInitialization = settings.getBoolean("needsInitialization", true);
-	    Log.d(TAG, "needsInitialization: " + presentInitialization);
+	    Log.v(TAG, "needsInitialization: " + presentInitialization);
 	    if (presentInitialization)
 	    {
+	    	Log.v(TAG, "starting StartupActivity");
 	    	startActivityForResult( new Intent(this, StartupActivity.class), INIT_TAG);
 	    }
 	    else
 	    {
+	    	Log.v(TAG, "starting MainActivity");
 	    	startActivity(new Intent(this, MainActivity.class));
 	    	finish();
 	    }
@@ -35,11 +37,12 @@ public class RootActivity extends Activity
     	{
     		if (resultCode == RESULT_OK)
     		{
+    			Log.v(TAG, "starting MainActivity");
     			startActivity(new Intent(this, MainActivity.class));
     			finish();
     		}
     	}
     	
-    	Log.e(TAG, "Main activity couldn't be started!");
+//    	Log.e(TAG, "Main activity couldn't be started!");
     }
 }

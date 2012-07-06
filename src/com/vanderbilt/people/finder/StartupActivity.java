@@ -43,6 +43,7 @@ public class StartupActivity extends Activity
 		 requestWindowFeature(Window.FEATURE_LEFT_ICON);
 	     setContentView(R.layout.startup);
 	     getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, android.R.drawable.ic_dialog_alert);
+	     this.setFinishOnTouchOutside(false);
 	     
 	     latLabel = (TextView)findViewById(R.id.lat_label);
 	     longLabel = (TextView)findViewById(R.id.long_label);
@@ -74,10 +75,13 @@ public class StartupActivity extends Activity
 	     // Register the listener with the Location Manager to receive location updates
 	     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 	     Location l = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	     latitude = l.getLatitude();
-    	 latLabel.setText(Double.toString(latitude));
-    	 longitude = l.getLongitude();
-    	 longLabel.setText(Double.toString(longitude));
+	     if (l != null)
+	     {
+	    	 latitude = l.getLatitude();
+	    	 latLabel.setText(Double.toString(latitude));
+	    	 longitude = l.getLongitude();
+	    	 longLabel.setText(Double.toString(longitude));
+	     }
 	     
 	     registerButton.setOnClickListener(new View.OnClickListener() 
 	     {
