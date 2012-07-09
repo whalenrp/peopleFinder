@@ -32,6 +32,8 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.provider.Settings;
 
+import org.apache.http.conn.util.InetAddressUtils;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -124,7 +126,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * directory server. 
 	 */
 	public void refreshPeers(View view){
-		
+		String tmp = getIpAddress();
 	}
 
 	// Private function for constructing a dialog in the event of no GPS
@@ -307,10 +309,12 @@ public class LocationsActivity extends MapActivity implements LocationListener
                     NetworkInterface intf = (NetworkInterface)en.nextElement();
                     for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
                         InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
-                        if (!inetAddress.isLoopbackAddress()) {
-                            String ipaddress=inetAddress.getHostAddress().toString();
-                            Log.e("ip address",""+ipaddress);
-                            return ipaddress;
+						String ipv4;
+                        if (	!inetAddress.isLoopbackAddress()  && 
+								InetAddressUtils.isIPv4Address(ipv4=inetAddress.getHostAddress()))
+						{
+							Log.e("LocationsActivity" ,ipv4);
+							return ipv4;
                         }
                     }
                 }
