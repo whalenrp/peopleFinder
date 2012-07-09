@@ -10,11 +10,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dip"
-        android:text="Register your app"
+        android:text="Register Your App"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="#FFFFFF"
         android:textSize="24dip"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dip"
+        android:text="By registering, a new sync account will be created. You may turn on/off syncing in your Settings panel. Syncing is enabled by default."
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="12dip"
+        android:textStyle="italic" />
 
     <TextView
         android:layout_width="wrap_content"

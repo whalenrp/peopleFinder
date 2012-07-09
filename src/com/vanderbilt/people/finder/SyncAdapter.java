@@ -77,5 +77,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 				Log.v(TAG, "Updated " + i + "item(s).");
 			}
 		}
+		
+		c.close();
 	}
 }

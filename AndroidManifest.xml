@@ -7,22 +7,44 @@
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>android.accounts.AccountAuthenticatorandroid.accounts.AccountAuthenticatorandroid.accounts.AccountAuthenticator
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
+    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+    <uses-permission android:name="android.permission.READ_SYNC_STATS"/>
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
 		<uses-library android:name="com.google.android.maps" />
-	<provider android:authorities="com.vanderbilt.people.finder.Provider" 
+		<provider android:authorities="com.vanderbilt.people.finder.Provider" 
               android:name=".Provider" android:exported="false"/> 
         <activity android:name="MainActivity"
                   android:label="@string/app_name">
         </activity>
 		<activity android:name="LocationsActivity"/>
 		<activity android:name="StartupActivity"
-		    	  android:theme="@android:style/Theme.Dialog" />
+		    	  android:theme="@android:style/Theme.Dialog" >
+		</activity>
 		<activity android:name="RootActivity">
 		    <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 		</activity>
+		<service android:name="SyncService" android:exported="false">
+			<intent-filter>
+				<action android:name="android.content.SyncAdapter"/>
+			</intent-filter>
+			<meta-data android:resource="@xml/sync" android:name="android.content.SyncAdapter"/>
+		</service>
+		<service android:name="AuthenticationService" android:exported="false">
+			<meta-data android:resource="@xml/auth" android:name="android.accounts.AccountAuthenticator"/>
+			<intent-filter>
+				<action android:name="android.accounts.AccountAuthenticator"/>
+			</intent-filter>
+		</service>
 		
     </application>
 </manifest>

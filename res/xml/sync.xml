@@ -1,0 +1,6 @@
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+    android:contentAuthority="com.vanderbilt.people.finder.Provider"
+    android:accountType="com.vanderbilt.people.finder.account"
+    android:supportsUploading="true"
+    android:userVisible="true"
+/>

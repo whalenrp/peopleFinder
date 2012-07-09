@@ -2,10 +2,15 @@ package com.vanderbilt.people.finder;
 
 import com.vanderbilt.people.finder.Provider.Constants;
 
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorActivity;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
@@ -20,7 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class StartupActivity extends Activity 
+public class StartupActivity extends AccountAuthenticatorActivity 
 {
 	private static final String TAG = "StartupActivity";
 	
@@ -94,8 +99,24 @@ public class StartupActivity extends Activity
 				d.setLongitude(longitude);
 				
 				new UploadNewUserTask().execute(d);
+				registerAccount();
 			}
 		});
+	 }
+	 
+	 private void registerAccount()
+	 {
+		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
+		 AccountManager accountManager = AccountManager.get(this);
+		 accountManager.addAccountExplicitly(account, null, null);
+		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+		 
+		 final Intent intent = new Intent();
+	     intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, nameEditText.getText().toString());
+	     intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountConstants.ACCOUNT_TYPE);
+	     setAccountAuthenticatorResult(intent.getExtras());
+	     setResult(RESULT_OK, intent);
+	     finish();
 	 }
 	 
 	 private class UploadNewUserTask extends AsyncTask<DataModel, Void, Long>
@@ -134,9 +155,7 @@ public class StartupActivity extends Activity
 			if (progress.isShowing())
 				progress.dismiss();
 			
-			// Dismiss activity
-			setResult(RESULT_OK);
-			finish();
+			registerAccount();
 		}
 	 }
 }

@@ -161,6 +161,8 @@ public class MainActivity extends FragmentActivity
 														Constants.SERVER_KEY+"="+d.getKey(), null);
 					Log.v(TAG, "Updated " + i + "item(s).");
 				}
+				
+				c.close();
 			}
 		}
 	}

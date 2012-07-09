@@ -22,6 +22,7 @@ public class Provider extends ContentProvider {
  
   public static final class Constants implements BaseColumns {
 
+	public static final String AUTHORITY = "com.vanderbilt.people.finder.Provider";
     public static final Uri CONTENT_URI=
         Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
     static final String MESSAGE = "message";
