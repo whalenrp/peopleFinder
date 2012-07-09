@@ -36,7 +36,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.net.InetAddress
+import java.net.SocketException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.net.NetworkInterface;
@@ -248,14 +249,14 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 */
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>{
 		private Context context;
-		private bool isRunning;
+		private boolean isRunning;
 
 		public SendPositionTask(Context context){
 			this.context = context;
 		}
 
 		@Override
-		protected Void onPreExecute(){
+		protected void onPreExecute(){
 			isRunning = true;
 		}
 
@@ -290,7 +291,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		}
 
 		@Override
-		protected Void onPostExecute(Void... void){
+		protected void onPostExecute(Void empty){
 			isRunning = false;
 		}
 
@@ -300,12 +301,12 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		
 	}
     
-    public static String getipAddress() {
+    public static String getIpAddress() {
             try {
                 for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                    NetworkInterface intf = en.nextElement();
+                    NetworkInterface intf = (NetworkInterface)en.nextElement();
                     for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                        InetAddress inetAddress = enumIpAddr.nextElement();
+                        InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
                         if (!inetAddress.isLoopbackAddress()) {
                             String ipaddress=inetAddress.getHostAddress().toString();
                             Log.e("ip address",""+ipaddress);
