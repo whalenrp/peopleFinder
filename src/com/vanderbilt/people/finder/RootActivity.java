@@ -1,9 +1,12 @@
 package com.vanderbilt.people.finder;
 
+import com.vanderbilt.people.finder.Provider.Constants;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 
 public class RootActivity extends Activity 
@@ -20,8 +23,11 @@ public class RootActivity extends Activity
 	    Log.v(TAG, "needsInitialization: " + presentInitialization);
 	    if (presentInitialization)
 	    {
-	    	Log.v(TAG, "starting StartupActivity");
-	    	startActivityForResult( new Intent(this, StartupActivity.class), INIT_TAG);
+	    	Intent i = new Intent(Settings.ACTION_ADD_ACCOUNT);
+	    	i.putExtra(Settings.EXTRA_AUTHORITIES, new String[] { Constants.AUTHORITY });
+	    	Log.v(TAG, "launching startup activity");
+	    	Log.v(TAG, i.toString());
+	    	startActivityForResult(i, INIT_TAG);
 	    }
 	    else
 	    {

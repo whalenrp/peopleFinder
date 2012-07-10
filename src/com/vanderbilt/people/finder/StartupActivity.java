@@ -2,10 +2,14 @@ package com.vanderbilt.people.finder;
 
 import com.vanderbilt.people.finder.Provider.Constants;
 
-import android.app.Activity;
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorActivity;
+import android.accounts.AccountManager;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
@@ -18,12 +22,14 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
-public class StartupActivity extends Activity 
+public class StartupActivity extends AccountAuthenticatorActivity 
 {
 	private static final String TAG = "StartupActivity";
 	
+	private long syncFreqSeconds;
 	private double latitude;
 	private double longitude;
 	
@@ -34,6 +40,7 @@ public class StartupActivity extends Activity
 	private EditText statusEditText;
 	
 	private Button registerButton;
+	private RadioGroup syncGroup;
 	
 	private ProgressDialog progress;
 	
@@ -50,6 +57,27 @@ public class StartupActivity extends Activity
 	     nameEditText = (EditText)findViewById(R.id.s_name_edit);
 	     statusEditText = (EditText)findViewById(R.id.s_status_edit);
 	     registerButton = (Button)findViewById(R.id.register_button);
+	     syncGroup = (RadioGroup)findViewById(R.id.sync_freq);
+	     syncGroup.check(R.id.r_auto);
+	     
+	     syncGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
+	     {
+			public void onCheckedChanged(RadioGroup group, int checkedId) 
+			{
+				switch(checkedId)
+				{
+					case R.id.r_auto:
+						syncFreqSeconds = -1;
+						break;
+					case R.id.r_fifteen:
+						syncFreqSeconds = 15 * 60;
+						break;
+					case R.id.r_hour:
+						syncFreqSeconds = 60 * 60;
+						break;
+				}
+			}
+		});
 	     
 	     // Acquire a reference to the system Location Manager
 	     LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -98,6 +126,30 @@ public class StartupActivity extends Activity
 		});
 	 }
 	 
+	 private void registerAccount()
+	 {
+		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
+		 AccountManager accountManager = AccountManager.get(this);
+		 accountManager.addAccountExplicitly(account, null, null);
+		 UserData.establishAccount(getApplicationContext(), account);
+		 
+		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
+		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+		 if (syncFreqSeconds != -1)
+			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
+		
+		 final Intent intent = new Intent();
+	     intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, nameEditText.getText().toString());
+	     intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountConstants.ACCOUNT_TYPE);
+	     setAccountAuthenticatorResult(intent.getExtras());
+	     setResult(RESULT_OK, intent);
+	     
+	     SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
+		 SharedPreferences.Editor editor = settings.edit();
+		 editor.putBoolean("needsInitialization", false);
+		 editor.commit();
+	 }
+	 
 	 private class UploadNewUserTask extends AsyncTask<DataModel, Void, Long>
 	 {
 		 protected void onPreExecute()
@@ -114,10 +166,10 @@ public class StartupActivity extends Activity
 		
 		protected void onPostExecute(Long l)
 		{
-			UserId.establishId(StartupActivity.this, l);
+			UserData.establishId(StartupActivity.this, l);
 			
 			ContentValues cv = new ContentValues();
-			cv.put(Constants.SERVER_KEY, UserId.getId(StartupActivity.this));
+			cv.put(Constants.SERVER_KEY, UserData.getId(StartupActivity.this));
 			cv.put(Constants.NAME, nameEditText.getText().toString());
 			cv.put(Constants.LATITUDE, latitude);
 			cv.put(Constants.LONGITUDE, longitude);
@@ -125,17 +177,11 @@ public class StartupActivity extends Activity
 			
 			Uri newUser = getContentResolver().insert(Constants.CONTENT_URI, cv);
 			Log.v(TAG, "New user stored at: " + newUser.toString());
-			
-			SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean("needsInitialization", false);
-			editor.commit();
-			
+		
 			if (progress.isShowing())
 				progress.dismiss();
 			
-			// Dismiss activity
-			setResult(RESULT_OK);
+			registerAccount();
 			finish();
 		}
 	 }

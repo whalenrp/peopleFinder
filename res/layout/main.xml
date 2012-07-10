@@ -30,6 +30,7 @@
         android:layout_below="@+id/name_label"
         android:layout_toLeftOf="@+id/ok_button"
         android:layout_toRightOf="@+id/status_label"
+        android:hint="new status"
         android:inputType="textPersonName" />
 
     <Button
@@ -62,5 +63,14 @@
         android:layout_below="@+id/ok_button" >
 
     </ListView>
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ok_button"
+        android:layout_alignParentRight="true"
+        android:text="status"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

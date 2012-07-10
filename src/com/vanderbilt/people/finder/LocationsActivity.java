@@ -1,6 +1,5 @@
 package com.vanderbilt.people.finder;
 
-
 import com.vanderbilt.people.finder.Provider.Constants;
 import com.google.android.maps.MapView;
 import com.google.android.maps.GeoPoint;
@@ -9,53 +8,48 @@ import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 import com.google.android.maps.MyLocationOverlay;
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.graphics.drawable.Drawable;
-import android.content.ContentValues;
+
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+
+
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.location.Criteria;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
+
 import android.os.AsyncTask;
-import android.os.AsyncTask.Status;
+
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+
 import android.widget.Toast;
 import android.provider.Settings;
 
-import org.apache.http.conn.util.InetAddressUtils;
+
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.MalformedURLException;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
 import java.util.NoSuchElementException;
-import java.io.DataInputStream;
-import java.io.IOException;
+
 import java.io.PrintStream;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.InetAddress;
+
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.net.NetworkInterface;
+
 import java.util.List;
 import java.util.ListIterator;
 
-import android.text.format.Formatter;
+
 import android.util.Log;
 
 public class LocationsActivity extends MapActivity implements LocationListener
@@ -64,7 +58,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
 	private MapView mapthumb;
-	private GeoPoint center;
+//	private GeoPoint center;
 	private MyLocationOverlay me = null;
 
     /** Called when the activity is first created. */
@@ -82,7 +76,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			null,null,null);
 
 		initMap(myInfo);
-
 		myInfo.close();
 
 		myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -136,8 +129,8 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * directory server. 
 	 */
 	public void refreshPeers(View view){
-		String tmp = getMyExternalIp();
-		Log.i("LocationsActivity", tmp);
+//		String tmp = getMyExternalIp();
+//		Log.i("LocationsActivity", tmp);
 	}
 
 	// Private function for constructing a dialog in the event of no GPS
@@ -283,7 +276,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 			// Get device's IP address
 			if (myIp.equals("")){
-				String myIp = new String(getMyExternalIp());
+				myIp = new String(getMyExternalIp());
 			}
 
 			// initialize Connect objects for every IP in the database
@@ -376,7 +369,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			url = new URL("http://api.externalip.net/ip/");
 			conn = (HttpURLConnection)url.openConnection();
 
-			String jsonString = "";
 			InputStream in = null;
 			try{
 				in = new BufferedInputStream(conn.getInputStream());

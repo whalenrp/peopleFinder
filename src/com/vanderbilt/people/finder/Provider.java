@@ -22,6 +22,7 @@ public class Provider extends ContentProvider {
  
   public static final class Constants implements BaseColumns {
 
+	public static final String AUTHORITY = "com.vanderbilt.people.finder.Provider";
     public static final Uri CONTENT_URI=
         Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
     static final String MESSAGE = "message";
@@ -96,7 +97,7 @@ public class Provider extends ContentProvider {
     {
       Uri uri = ContentUris.withAppendedId(Provider.Constants.CONTENT_URI,
                                      rowID);
-      getContext().getContentResolver().notifyChange(uri, null);
+      getContext().getContentResolver().notifyChange(uri, null, false);
       return(uri);
     }
     throw new SQLException("Failed to insert row into " + url);
@@ -107,7 +108,7 @@ public class Provider extends ContentProvider {
   public int delete(Uri url, String where, String[] whereArgs) 
   {
 	  int count=db.getWritableDatabase().delete(TABLE, where, whereArgs);
-	  getContext().getContentResolver().notifyChange(url, null);
+	  getContext().getContentResolver().notifyChange(url, null, false);
 	  return(count);
   }
 
@@ -117,7 +118,7 @@ public class Provider extends ContentProvider {
   {
 	  int count = db.getWritableDatabase()
 			  		.update(TABLE, values, where, whereArgs);
-	  getContext().getContentResolver().notifyChange(url, null);
+	  getContext().getContentResolver().notifyChange(url, null, false);
 	  return(count);
   }
 

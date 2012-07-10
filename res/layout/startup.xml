@@ -10,11 +10,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dip"
-        android:text="Register your app"
+        android:text="Register Your App"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="#FFFFFF"
         android:textSize="24dip"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dip"
+        android:text="By registering, a new sync account will be created. You may turn on/off syncing in your Settings panel. Syncing is enabled by default."
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="12dip"
+        android:textStyle="italic" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -49,44 +59,81 @@
         android:ems="10"
         android:inputType="textPersonName" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dip"
-        android:text="Latitude"
-        android:textColor="#FFFFFF" />
-
-    <TextView
-        android:id="@+id/lat_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dip"
-        android:text="(latitude here)"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textStyle="italic" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dip"
-        android:text="Longitude"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#FFFFFF" />
-
-    <TextView
-        android:id="@+id/long_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dip"
-        android:text="(longitude here)"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textStyle="italic" />
-
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dip"
+            android:layout_marginRight="3dip"
+            android:text="Lat:"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/lat_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dip"
+            android:text="(latitude here)"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="italic" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="15dip"
+            android:layout_marginRight="3dip"
+            android:text="Long:"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/long_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dip"
+            android:layout_weight="30"
+            android:text="(longitude here)"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="italic" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#c6c3c6" >
-    </FrameLayout>
+        android:text="Sync Frequency" />
+
+    <RadioGroup
+        android:id="@+id/sync_freq"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="7dip"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/r_auto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Automatic" />
+
+        <RadioButton
+            android:id="@+id/r_fifteen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="15 min" />
+
+        <RadioButton
+            android:id="@+id/r_hour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 hour" />
+    </RadioGroup>
 
     <Button
         android:id="@+id/register_button"

@@ -1,13 +1,41 @@
 package com.vanderbilt.people.finder;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public final class UserId 
+public final class UserData 
 {
 	private static final String USER_ID = "user_server_key";
+	private static final String ACCOUNT_NAME = "account_name";
+	
 	// Non-instantiable, it's a singleton.
-	private UserId() {}
+	private UserData() {}
+	
+	public static void establishAccount(Context context, Account account)
+	{
+		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
+		if (!settings.contains(ACCOUNT_NAME))
+		{
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putString(ACCOUNT_NAME, account.name);
+			editor.commit();
+		}
+	}
+	
+	public static Account getAccount(Context context)
+	{ 
+		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
+		String accountName = settings.getString(ACCOUNT_NAME, null);
+		AccountManager accountManager = AccountManager.get(context);
+		for (Account a : accountManager.getAccountsByType(AccountConstants.ACCOUNT_TYPE))
+		{
+			if (accountName.equals(a.name))
+				return a;
+		}
+		return null;
+	}
 
 	/**
 	 * Establishes the id for the app user for easy access during Content
