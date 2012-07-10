@@ -131,16 +131,13 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
 		 AccountManager accountManager = AccountManager.get(this);
 		 accountManager.addAccountExplicitly(account, null, null);
-		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
-		 if (syncFreqSeconds == -1)
-			 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
-		 else
-		 {
-			 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
-			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
-		 }
-			 
+		 UserData.establishAccount(getApplicationContext(), account);
 		 
+		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
+		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+		 if (syncFreqSeconds != -1)
+			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
+		
 		 final Intent intent = new Intent();
 	     intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, nameEditText.getText().toString());
 	     intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountConstants.ACCOUNT_TYPE);
@@ -151,8 +148,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 SharedPreferences.Editor editor = settings.edit();
 		 editor.putBoolean("needsInitialization", false);
 		 editor.commit();
-			
-	     finish();
 	 }
 	 
 	 private class UploadNewUserTask extends AsyncTask<DataModel, Void, Long>
@@ -171,10 +166,10 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		
 		protected void onPostExecute(Long l)
 		{
-			UserId.establishId(StartupActivity.this, l);
+			UserData.establishId(StartupActivity.this, l);
 			
 			ContentValues cv = new ContentValues();
-			cv.put(Constants.SERVER_KEY, UserId.getId(StartupActivity.this));
+			cv.put(Constants.SERVER_KEY, UserData.getId(StartupActivity.this));
 			cv.put(Constants.NAME, nameEditText.getText().toString());
 			cv.put(Constants.LATITUDE, latitude);
 			cv.put(Constants.LONGITUDE, longitude);
@@ -187,6 +182,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 				progress.dismiss();
 			
 			registerAccount();
+			finish();
 		}
 	 }
 }

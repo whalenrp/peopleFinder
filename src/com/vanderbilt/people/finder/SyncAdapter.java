@@ -34,7 +34,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		Cursor c = _context.getContentResolver().query(Constants.CONTENT_URI,
 					new String[] { Constants.NAME, Constants.MESSAGE, Constants.SERVER_KEY,
 								   Constants.LONGITUDE, Constants.LATITUDE },
-					Constants.SERVER_KEY+"="+UserId.getId(_context), null, null);
+					Constants.SERVER_KEY+"="+UserData.getId(_context), null, null);
 		
 		DataModel dataToSend = null;
 		if (c.moveToFirst())
@@ -48,8 +48,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		
 		// Send dirty records to server while receiving updates
 		Long returnedKey = NetworkUtilities.pushClientStatus(dataToSend);
-		Log.v(TAG, UserId.getId(_context) + " returned " + returnedKey);
-		List<DataModel> returnedItems = NetworkUtilities.getPeerUpdates(UserId.getId(_context));
+		Log.v(TAG, UserData.getId(_context) + " returned " + returnedKey);
+		List<DataModel> returnedItems = NetworkUtilities.getPeerUpdates(UserData.getId(_context));
 		
 		for (DataModel d : returnedItems)
 		{

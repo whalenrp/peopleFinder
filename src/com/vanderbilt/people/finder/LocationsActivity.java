@@ -1,6 +1,5 @@
 package com.vanderbilt.people.finder;
 
-
 import com.vanderbilt.people.finder.Provider.Constants;
 import com.google.android.maps.MapView;
 import com.google.android.maps.GeoPoint;
@@ -9,6 +8,7 @@ import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 import com.google.android.maps.MyLocationOverlay;
 import android.graphics.drawable.Drawable;
+import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -22,7 +22,7 @@ public class LocationsActivity extends MapActivity
 	private Button updateBtn;
 	private Button refreshBtn;
 	private MapView mapthumb;
-	private GeoPoint center;
+//	private GeoPoint center;
 	private MyLocationOverlay me = null;
 
     /** Called when the activity is first created. */
@@ -42,15 +42,24 @@ public class LocationsActivity extends MapActivity
 
 		initMap(myInfo);
 
-		updateBtn.setOnClickListener(new View.OnClickListener(){
-			public void onClick(View v){
-				
+		
+		// Since we are making use of a sync adapter, and the 
+		// sync adapter performs the functionality of both of
+		// these buttons in one fell swoop, they will essentially
+		// be the same.
+		updateBtn.setOnClickListener(new View.OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), Constants.AUTHORITY, new Bundle());
 			}
 		});
 
-		refreshBtn.setOnClickListener(new View.OnClickListener(){
-			public void onClick(View v){
-				
+		refreshBtn.setOnClickListener(new View.OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), Constants.AUTHORITY, new Bundle());
 			}
 		});
 		
