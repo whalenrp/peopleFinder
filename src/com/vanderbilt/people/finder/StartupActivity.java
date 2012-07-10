@@ -10,7 +10,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -144,10 +143,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     setAccountAuthenticatorResult(intent.getExtras());
 	     setResult(RESULT_OK, intent);
 	     
-	     SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
-		 SharedPreferences.Editor editor = settings.edit();
-		 editor.putBoolean("needsInitialization", false);
-		 editor.commit();
+	     UserData.establishInitialization(getApplicationContext());
 	 }
 	 
 	 private class UploadNewUserTask extends AsyncTask<DataModel, Void, Long>

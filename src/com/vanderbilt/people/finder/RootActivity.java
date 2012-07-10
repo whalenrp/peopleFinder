@@ -18,10 +18,7 @@ public class RootActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		
-		SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
-	    boolean presentInitialization = settings.getBoolean("needsInitialization", true);
-	    Log.v(TAG, "needsInitialization: " + presentInitialization);
-	    if (presentInitialization)
+	    if (UserData.needsInitialization(getApplicationContext()))
 	    {
 	    	Intent i = new Intent(Settings.ACTION_ADD_ACCOUNT);
 	    	i.putExtra(Settings.EXTRA_AUTHORITIES, new String[] { Constants.AUTHORITY });
