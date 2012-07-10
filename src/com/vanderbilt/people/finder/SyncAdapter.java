@@ -31,20 +31,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult)
 	{	
-		Cursor c = _context.getContentResolver().query(Constants.CONTENT_URI,
+		Cursor userEntry = _context.getContentResolver().query(Constants.CONTENT_URI,
 					new String[] { Constants.NAME, Constants.MESSAGE, Constants.SERVER_KEY,
 								   Constants.LONGITUDE, Constants.LATITUDE },
 					Constants.SERVER_KEY+"="+UserData.getId(_context), null, null);
 		
 		DataModel dataToSend = null;
-		if (c.moveToFirst())
+		if (userEntry.moveToFirst())
 		{
-			dataToSend = new DataModel(c.getLong(c.getColumnIndex(Constants.SERVER_KEY)));
-			dataToSend.setName(c.getString(c.getColumnIndex(Constants.NAME)));
-			dataToSend.setStatus(c.getString(c.getColumnIndex(Constants.MESSAGE)));
-			dataToSend.setLatitude(c.getDouble(c.getColumnIndex(Constants.LATITUDE)));
-			dataToSend.setLongitude(c.getDouble(c.getColumnIndex(Constants.LONGITUDE)));
+			dataToSend = new DataModel(userEntry.getLong(userEntry.getColumnIndex(Constants.SERVER_KEY)));
+			dataToSend.setName(userEntry.getString(userEntry.getColumnIndex(Constants.NAME)));
+			dataToSend.setStatus(userEntry.getString(userEntry.getColumnIndex(Constants.MESSAGE)));
+			dataToSend.setLatitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LATITUDE)));
+			dataToSend.setLongitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LONGITUDE)));
 		}
+		userEntry.close();
 		
 		// Send dirty records to server while receiving updates
 		Long returnedKey = NetworkUtilities.pushClientStatus(dataToSend);
@@ -54,7 +55,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		for (DataModel d : returnedItems)
 		{
 			
-			c = _context.getContentResolver().query(Constants.CONTENT_URI,
+			Cursor c = _context.getContentResolver().query(Constants.CONTENT_URI,
 									   new String[] { Constants.SERVER_KEY },
 									   Constants.SERVER_KEY+"="+d.getKey(), null, null);
 			
@@ -76,8 +77,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 													Constants.SERVER_KEY+"="+d.getKey(), null);
 				Log.v(TAG, "Updated " + i + "item(s).");
 			}
+			
+			c.close();
 		}
-		
-		c.close();
 	}
 }

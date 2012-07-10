@@ -4,7 +4,6 @@ import com.vanderbilt.people.finder.Provider.Constants;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
