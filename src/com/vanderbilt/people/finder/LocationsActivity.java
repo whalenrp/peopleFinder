@@ -10,7 +10,6 @@ import com.google.android.maps.OverlayItem;
 import com.google.android.maps.MyLocationOverlay;
 import android.graphics.drawable.Drawable;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;

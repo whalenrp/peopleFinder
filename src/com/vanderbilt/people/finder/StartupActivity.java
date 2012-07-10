@@ -5,7 +5,6 @@ import com.vanderbilt.people.finder.Provider.Constants;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -23,12 +22,14 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 public class StartupActivity extends AccountAuthenticatorActivity 
 {
 	private static final String TAG = "StartupActivity";
 	
+	private long syncFreqSeconds;
 	private double latitude;
 	private double longitude;
 	
@@ -39,6 +40,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	private EditText statusEditText;
 	
 	private Button registerButton;
+	private RadioGroup syncGroup;
 	
 	private ProgressDialog progress;
 	
@@ -55,6 +57,27 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     nameEditText = (EditText)findViewById(R.id.s_name_edit);
 	     statusEditText = (EditText)findViewById(R.id.s_status_edit);
 	     registerButton = (Button)findViewById(R.id.register_button);
+	     syncGroup = (RadioGroup)findViewById(R.id.sync_freq);
+	     syncGroup.check(R.id.r_auto);
+	     
+	     syncGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
+	     {
+			public void onCheckedChanged(RadioGroup group, int checkedId) 
+			{
+				switch(checkedId)
+				{
+					case R.id.r_auto:
+						syncFreqSeconds = -1;
+						break;
+					case R.id.r_fifteen:
+						syncFreqSeconds = 15 * 60;
+						break;
+					case R.id.r_hour:
+						syncFreqSeconds = 60 * 60;
+						break;
+				}
+			}
+		});
 	     
 	     // Acquire a reference to the system Location Manager
 	     LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -99,7 +122,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 				d.setLongitude(longitude);
 				
 				new UploadNewUserTask().execute(d);
-				registerAccount();
 			}
 		});
 	 }
@@ -109,13 +131,27 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
 		 AccountManager accountManager = AccountManager.get(this);
 		 accountManager.addAccountExplicitly(account, null, null);
-		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
+		 if (syncFreqSeconds == -1)
+			 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+		 else
+		 {
+			 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
+			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
+		 }
+			 
 		 
 		 final Intent intent = new Intent();
 	     intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, nameEditText.getText().toString());
 	     intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountConstants.ACCOUNT_TYPE);
 	     setAccountAuthenticatorResult(intent.getExtras());
 	     setResult(RESULT_OK, intent);
+	     
+	     SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
+		 SharedPreferences.Editor editor = settings.edit();
+		 editor.putBoolean("needsInitialization", false);
+		 editor.commit();
+			
 	     finish();
 	 }
 	 
@@ -146,12 +182,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 			
 			Uri newUser = getContentResolver().insert(Constants.CONTENT_URI, cv);
 			Log.v(TAG, "New user stored at: " + newUser.toString());
-			
-			SharedPreferences settings = getSharedPreferences("UserData", MODE_PRIVATE);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean("needsInitialization", false);
-			editor.commit();
-			
+		
 			if (progress.isShowing())
 				progress.dismiss();
 			

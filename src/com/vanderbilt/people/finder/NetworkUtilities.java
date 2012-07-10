@@ -105,6 +105,7 @@ public final class NetworkUtilities
 			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
 			HttpEntity entity = new UrlEncodedFormEntity(params);
 			
+			Log.v(TAG, "Posting update");
 			final HttpPost httpPost = new HttpPost(urlFull);
 			httpPost.addHeader(entity.getContentType());
 	        httpPost.setEntity(entity);

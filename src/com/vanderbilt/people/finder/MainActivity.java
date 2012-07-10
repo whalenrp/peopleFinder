@@ -1,11 +1,8 @@
 package com.vanderbilt.people.finder;
 
-import java.util.List;
-
 import com.vanderbilt.people.finder.Provider.Constants;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.view.View;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.CursorLoader;
@@ -18,11 +15,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 public class MainActivity extends FragmentActivity
@@ -31,11 +23,11 @@ public class MainActivity extends FragmentActivity
 	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.NAME, Constants.IP };
 	private static final String TAG = "MainActivity";
 	
-	private DownloadDataTask downloader = new DownloadDataTask();
 	private SimpleCursorAdapter mAdapter;
 	private ListView mList;
 	private TextView nameLabel;
 	private EditText statusEditText;
+	private TextView statusLabelText;
 
     /** Called when the activity is first created. */
     @Override
@@ -46,6 +38,7 @@ public class MainActivity extends FragmentActivity
         
         nameLabel = (TextView)findViewById(R.id.name_label);
         statusEditText = (EditText)findViewById(R.id.edit_text_status);
+        statusLabelText = (TextView)findViewById(R.id.status_text);
         
 		mList = (ListView)findViewById(R.id.list);
 		
@@ -63,12 +56,9 @@ public class MainActivity extends FragmentActivity
     	if (c.moveToFirst())
     	{
     		nameLabel.setText(c.getString(c.getColumnIndex(Constants.NAME)));
-    		statusEditText.setHint(c.getString(c.getColumnIndex(Constants.MESSAGE)));
+    		statusLabelText.setText(c.getString(c.getColumnIndex(Constants.MESSAGE)));
     	}
-		c.close();
-		
-		downloader.execute();
-		
+		c.close();		
 		getSupportLoaderManager().initLoader(0, null, this);
     }
     
@@ -88,8 +78,8 @@ public class MainActivity extends FragmentActivity
 			int i = getContentResolver().update(Constants.CONTENT_URI, cv,
 					Constants.SERVER_KEY+"="+UserId.getId(this), null);
 			Log.v(TAG, "Updated status for " + i + " item(s).");
+			statusLabelText.setText(status);
 			statusEditText.setText("");
-			statusEditText.setHint(status);
 		}
 	}
 
@@ -111,59 +101,5 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader){
 		mAdapter.swapCursor(null);
-	}
-	
-	private class UploadDataTask extends AsyncTask<DataModel, Void, Long>
-	{
-		protected Long doInBackground(DataModel... dataModels) 
-		{
-			return NetworkUtilities.pushClientStatus(dataModels[0]);
-		}
-		
-		protected void onPostExecute(Long returnedObj)
-		{
-			UserId.establishId(MainActivity.this, returnedObj);
-		}
-	}
-	
-	private class DownloadDataTask extends AsyncTask<Void, Void, List<DataModel>>
-	{
-		protected List<DataModel> doInBackground(Void... params) 
-		{
-			return NetworkUtilities.getPeerUpdates(UserId.getId(MainActivity.this));
-		}
-		
-		protected void onPostExecute(List<DataModel> list)
-		{
-			Log.i("MainActivity", "List size: " + list.size());
-			for (DataModel d : list)
-			{
-				
-				Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-										   new String[] { Constants.SERVER_KEY },
-										   Constants.SERVER_KEY+"="+d.getKey(), null, null);
-				
-				ContentValues cv = d.toContentValues();
-				if (c.getCount() == 0)
-				{
-					Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
-					Log.v(TAG, "Inserted: " + uri.toString());
-				}
-				else if (d.isMarkedRemoved())
-				{
-					int i = getContentResolver().delete(Constants.CONTENT_URI,
-														Constants.SERVER_KEY+"="+d.getKey(), null);
-					Log.v(TAG, "Deleted " + i + "item(s).");
-				}
-				else
-				{
-					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-														Constants.SERVER_KEY+"="+d.getKey(), null);
-					Log.v(TAG, "Updated " + i + "item(s).");
-				}
-				
-				c.close();
-			}
-		}
 	}
 }

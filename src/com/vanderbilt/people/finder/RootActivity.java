@@ -2,9 +2,6 @@ package com.vanderbilt.people.finder;
 
 import com.vanderbilt.people.finder.Provider.Constants;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AuthenticatorDescription;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
