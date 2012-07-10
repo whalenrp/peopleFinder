@@ -34,6 +34,15 @@ import android.provider.Settings;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.MalformedURLException;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.NoSuchElementException;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -77,7 +86,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		myInfo.close();
 
 		myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-		myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0, this);
+		myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0, this);
 		mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		//myLocalManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0, this);
     }
@@ -107,6 +116,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		// if GPS enabled
 			// if no location, make toast telling to wait
 			// else call AsyncTask.execute()
+		mLocation = me.getLastFix();
 		if (!myLocalManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
 			buildAlertMessageNoGPS();
 		}else{
@@ -126,7 +136,8 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * directory server. 
 	 */
 	public void refreshPeers(View view){
-		String tmp = getIpAddress();
+		String tmp = getMyExternalIp();
+		Log.i("LocationsActivity", tmp);
 	}
 
 	// Private function for constructing a dialog in the event of no GPS
@@ -251,6 +262,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 */
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>{
 		private Context context;
+		private String myIp = "";
 		private boolean isRunning;
 
 		public SendPositionTask(Context context){
@@ -270,7 +282,9 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				null, null, null);
 
 			// Get device's IP address
-			String myIp = getIpAddress();
+			if (myIp.equals("")){
+				String myIp = new String(getMyExternalIp());
+			}
 
 			// initialize Connect objects for every IP in the database
 			ArrayList<Connection> mPeers = new ArrayList<Connection>();
@@ -302,27 +316,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		}
 		
 	}
-    
-    public static String getIpAddress() {
-            try {
-                for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                    NetworkInterface intf = (NetworkInterface)en.nextElement();
-                    for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                        InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
-						String ipv4;
-                        if (	!inetAddress.isLoopbackAddress()  && 
-								InetAddressUtils.isIPv4Address(ipv4=inetAddress.getHostAddress()))
-						{
-							Log.e("LocationsActivity" ,ipv4);
-							return ipv4;
-                        }
-                    }
-                }
-            } catch (SocketException ex) {
-                Log.e("Socket exception in GetIP Address of Utilities", ex.toString());
-            }
-            return null;
-    }
 
 	/**
 	 * Private helper class for managing individual connections.
@@ -338,6 +331,8 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		public Connection(String ip){
 			this.ip = ip;
 			valid=false;
+			Log.i("LocationsActivity.Connection", 
+				"Created Connection object with ip: " + ip);
 		}
 
 		public boolean openConnection(){
@@ -372,5 +367,49 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			valid = false;
 		}
 	}
+
+	private String getMyExternalIp(){
+		try{
+			URL url = null;
+			HttpURLConnection conn = null;
+
+			url = new URL("http://api.externalip.net/ip/");
+			conn = (HttpURLConnection)url.openConnection();
+
+			String jsonString = "";
+			InputStream in = null;
+			try{
+				in = new BufferedInputStream(conn.getInputStream());
+			}catch(IOException e){
+				e.printStackTrace();
+				return "";
+			}
+			String responseString = convertStreamToString(in);
+
+			if (responseString.length() == 0) return "";
+			conn.disconnect();
+
+			return responseString;
+
+
+		}catch(MalformedURLException e){
+			Log.w("SyncService", "URL no longer valid");
+			e.printStackTrace();
+		}catch(IOException e){
+			Log.w("SyncService", "Connection could not be established.");
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+    // Helper function for reading input stream
+    // retrieved from http://stackoverflow.com/a/5445161/793208
+    private String convertStreamToString(InputStream is){
+        try{
+            return new java.util.Scanner(is).useDelimiter("\\A").next();
+        }catch(NoSuchElementException e){
+            return "";
+        }
+    }
     
 }
