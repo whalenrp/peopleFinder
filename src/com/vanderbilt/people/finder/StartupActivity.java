@@ -117,15 +117,18 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     {
 			public void onClick(View v) 
 			{
-				// Set ip field in UploadNewUserTask for now,
-				// may not be the best way, long-term
-				DataModel d = new DataModel();
-				d.setName(nameEditText.getText().toString());
-				d.setStatus(statusEditText.getText().toString());
-				d.setLatitude(latitude);
-				d.setLongitude(longitude);
-				
-				new UploadNewUserTask().execute(d);
+				if (nameEditText.getText().length() > 0)
+				{
+					// Set ip field in UploadNewUserTask for now,
+					// may not be the best way, long-term
+					DataModel d = new DataModel();
+					d.setName(nameEditText.getText().toString());
+					d.setStatus(statusEditText.getText().toString());
+					d.setLatitude(latitude);
+					d.setLongitude(longitude);
+					
+					new UploadNewUserTask().execute(d);
+				}
 			}
 		});
 	 }
