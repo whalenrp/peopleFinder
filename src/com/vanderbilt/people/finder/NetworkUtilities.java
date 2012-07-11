@@ -37,6 +37,9 @@ public final class NetworkUtilities
 	private static final String DOWNLOAD = "/download";
 	private static final String UPLOAD = "/upload";
 	private static final String REMOVE = "/remove";
+	private static final String IP = "/ip";
+	
+	private static final String EXTERNAL_IP_URL = "http://api.externalip.net/ip/";
 	
 	private static final String GET_PARAM_SKEY = "?skey=";
 	private static final String POST_PARAM_JSON_PACKAGE = "json_package";
@@ -50,6 +53,69 @@ public final class NetworkUtilities
         HttpConnectionParams.setSoTimeout(params, 30 * 1000);
         ConnManagerParams.setTimeout(params, 30 * 1000);
         return httpClient;
+	}
+	
+	public static String getMyExternalIp()
+	{
+		HttpClient httpClient = getHttpClient();
+		try
+		{
+			final HttpGet httpget = new HttpGet(EXTERNAL_IP_URL);
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			String responseBody = httpClient.execute(httpget, responseHandler);
+			Log.v(TAG, "external ip: " + responseBody);
+			
+			return responseBody;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			httpClient.getConnectionManager().shutdown();
+		}
+			
+		return null;
+	}
+	
+	public static List<DataModel> requestIpAddresses(Long key)
+	{
+		String urlFull = BASE_URL + IP;
+		if (key != null)
+			urlFull += GET_PARAM_SKEY + key;
+		HttpClient httpClient = getHttpClient();
+		List<DataModel> objectsReturned = new ArrayList<DataModel>();
+		try
+		{
+			final HttpGet httpget = new HttpGet(urlFull);
+			Log.i(TAG, "executing request " + httpget.getURI());
+			
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			String responseBody = httpClient.execute(httpget, responseHandler);
+			Log.d(TAG, responseBody);
+			JSONArray array = new JSONArray(responseBody);
+			
+			for (int i = 0; i < array.length(); i++)
+			{
+				JSONObject o = array.getJSONObject(i);
+				Long skey = o.getLong("skey");
+				String ipAddr = o.getString("ip");
+				DataModel dataModel = new DataModel(skey, ipAddr);
+				objectsReturned.add(dataModel);
+			}
+		}
+		catch (Exception e)
+		{
+			
+			e.printStackTrace();
+		}
+		finally
+		{
+			httpClient.getConnectionManager().shutdown();
+		}
+		
+		return objectsReturned;
 	}
 	
 	public static boolean requestRemoval(Long key)

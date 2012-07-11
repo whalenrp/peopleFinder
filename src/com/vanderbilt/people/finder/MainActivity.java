@@ -20,7 +20,7 @@ import android.os.Bundle;
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
-	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.NAME, Constants.IP };
+	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.IP };
 	private static final String TAG = "MainActivity";
 	
 	private SimpleCursorAdapter mAdapter;
@@ -43,10 +43,12 @@ public class MainActivity extends FragmentActivity
 		mList = (ListView)findViewById(R.id.list);
 		
 		// Set up Adapter
-		mAdapter = new SimpleCursorAdapter(this, 
-			android.R.layout.simple_list_item_2, null, 
-			new String[] {Constants.NAME, Constants.IP}, 
-			new int[] {android.R.id.text1, android.R.id.text2}, 0);
+//		mAdapter = new SimpleCursorAdapter(this, 
+//			android.R.layout.simple_list_item_2, null, 
+//			new String[] {Constants.NAME, Constants.IP}, 
+//			new int[] {android.R.id.text1, android.R.id.text2}, 0);
+		mAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null,
+					   new String[] { Constants.IP }, new int[] { android.R.id.text1 }, 0);
 		mList.setAdapter(mAdapter);
 		
 

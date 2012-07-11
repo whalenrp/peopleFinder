@@ -33,7 +33,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 	{	
 		Cursor userEntry = _context.getContentResolver().query(Constants.CONTENT_URI,
 					new String[] { Constants.NAME, Constants.MESSAGE, Constants.SERVER_KEY,
-								   Constants.LONGITUDE, Constants.LATITUDE },
+								   Constants.LONGITUDE, Constants.LATITUDE, Constants.IP },
 					Constants.SERVER_KEY+"="+UserData.getId(_context), null, null);
 		
 		DataModel dataToSend = null;
@@ -44,17 +44,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 			dataToSend.setStatus(userEntry.getString(userEntry.getColumnIndex(Constants.MESSAGE)));
 			dataToSend.setLatitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LATITUDE)));
 			dataToSend.setLongitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LONGITUDE)));
+			dataToSend.setIpAddress(userEntry.getString(userEntry.getColumnIndex(Constants.IP)));
 		}
 		userEntry.close();
 		
 		// Send dirty records to server while receiving updates
 		Long returnedKey = NetworkUtilities.pushClientStatus(dataToSend);
 		Log.v(TAG, UserData.getId(_context) + " returned " + returnedKey);
-		List<DataModel> returnedItems = NetworkUtilities.getPeerUpdates(UserData.getId(_context));
+//		List<DataModel> returnedItems = NetworkUtilities.getPeerUpdates(UserData.getId(_context));
+		List<DataModel> returnedItems = NetworkUtilities.requestIpAddresses(UserData.getId(getContext()));
 		
 		for (DataModel d : returnedItems)
 		{
-			
 			Cursor c = _context.getContentResolver().query(Constants.CONTENT_URI,
 									   new String[] { Constants.SERVER_KEY },
 									   Constants.SERVER_KEY+"="+d.getKey(), null, null);

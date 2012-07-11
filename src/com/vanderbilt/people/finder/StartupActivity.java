@@ -58,14 +58,17 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     registerButton = (Button)findViewById(R.id.register_button);
 	     syncGroup = (RadioGroup)findViewById(R.id.sync_freq);
 	     syncGroup.check(R.id.r_auto);
+	     syncFreqSeconds = -1;
 	     
 	     syncGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
 	     {
 			public void onCheckedChanged(RadioGroup group, int checkedId) 
 			{
+				Log.v(TAG, "radio button changed");
 				switch(checkedId)
 				{
 					case R.id.r_auto:
+						Log.v(TAG, "set to -1");
 						syncFreqSeconds = -1;
 						break;
 					case R.id.r_fifteen:
@@ -114,6 +117,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     {
 			public void onClick(View v) 
 			{
+				// Set ip field in UploadNewUserTask for now,
+				// may not be the best way, long-term
 				DataModel d = new DataModel();
 				d.setName(nameEditText.getText().toString());
 				d.setStatus(statusEditText.getText().toString());
@@ -135,7 +140,10 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
 		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
 		 if (syncFreqSeconds != -1)
+		 {
 			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
+		 }
+			 
 		
 		 final Intent intent = new Intent();
 	     intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, nameEditText.getText().toString());
@@ -148,6 +156,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	 
 	 private class UploadNewUserTask extends AsyncTask<DataModel, Void, Long>
 	 {
+		 private String externalIp;
+		 
 		 protected void onPreExecute()
 		 {
 			 progress = new ProgressDialog(StartupActivity.this);
@@ -157,7 +167,10 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		
 		protected Long doInBackground(DataModel... params) 
 		{
-			return NetworkUtilities.pushClientStatus(params[0]);
+			DataModel d = params[0];
+			externalIp = NetworkUtilities.getMyExternalIp();
+			d.setIpAddress(externalIp);
+			return NetworkUtilities.pushClientStatus(d);
 		}
 		
 		protected void onPostExecute(Long l)
@@ -170,6 +183,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 			cv.put(Constants.LATITUDE, latitude);
 			cv.put(Constants.LONGITUDE, longitude);
 			cv.put(Constants.MESSAGE, statusEditText.getText().toString());
+			cv.put(Constants.IP, externalIp);
 			
 			Uri newUser = getContentResolver().insert(Constants.CONTENT_URI, cv);
 			Log.v(TAG, "New user stored at: " + newUser.toString());

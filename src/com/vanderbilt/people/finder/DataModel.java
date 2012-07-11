@@ -10,7 +10,7 @@ import android.content.ContentValues;
 public final class DataModel 
 {
 	private final Long key;
-	private final String ipAddress;
+	private String ipAddress;
 	private double latitude;
 	private double longitude;
 	private String status;
@@ -25,7 +25,6 @@ public final class DataModel
 	public DataModel()
 	{
 		key = null;
-		ipAddress = null;
 		markedRemoved = false;
 	}
 	
@@ -38,7 +37,13 @@ public final class DataModel
 	public DataModel(Long skey)
 	{
 		key = skey;
-		ipAddress = null;
+		markedRemoved = false;
+	}
+	
+	public DataModel(Long skey, String ipAddr)
+	{
+		key = skey;
+		ipAddress = ipAddr;
 		markedRemoved = false;
 	}
 	
@@ -136,6 +141,9 @@ public final class DataModel
 	}
 	public String getIpAddress() {
 		return ipAddress;
+	}
+	public void setIpAddress(String ipAddress){
+		this.ipAddress = ipAddress;
 	}
 
 }
