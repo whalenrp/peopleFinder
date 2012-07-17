@@ -19,6 +19,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.IBinder;
@@ -26,6 +27,8 @@ import android.util.Log;
 import android.text.format.Formatter;
 
 public class LocationResponder extends Service{
+	
+	private static final String TAG = "LocationResponder";
 
 	private static int port = 5567;
 	private ServerSocket listener = null;
@@ -41,8 +44,9 @@ public class LocationResponder extends Service{
 	}
 
 	@Override
-	public void onDestroy() {
-		
+	public void onDestroy()
+	{
+		new LeaveNetworkTask().execute();
 	}
 	
 	@Override
@@ -50,6 +54,21 @@ public class LocationResponder extends Service{
 		Response myResponse = new Response(this);
 		Thread t = new Thread(myResponse);
 		t.start();
+	}
+	
+	class LeaveNetworkTask extends AsyncTask<Void, Void, Void>
+	{
+
+		@Override
+		protected Void doInBackground(Void... params) 
+		{
+			boolean b = NetworkUtilities.requestRemoval(UserData.getId(LocationResponder.this));
+			if (!b)
+				Log.w(TAG, "User could not unregister from server.");
+			
+			return null;
+		}
+		
 	}
 }
 
@@ -103,3 +122,5 @@ class Response implements Runnable{
 			}
     }
 }
+
+

@@ -11,7 +11,7 @@
 		 android:apiKey="0eHleoqXg53-tX_QQsCF9Ufs9YgCjlECIiuMZnw"
 		 android:clickable="true"
 		 />
-	<LinearLayout android:layout_width="match_parent"
+	<LinearLayout android:layout_width="fill_parent"
 		  android:layout_height="wrap_content"
 		  android:layout_alignParentBottom="true"
 		  android:weightSum="2"
