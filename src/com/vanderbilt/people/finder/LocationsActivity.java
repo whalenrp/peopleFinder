@@ -9,7 +9,11 @@ import com.google.android.maps.OverlayItem;
 import com.google.android.maps.MyLocationOverlay;
 import android.graphics.drawable.Drawable;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,8 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import android.util.Log;
 
-public class LocationsActivity extends MapActivity
+public class LocationsActivity extends MapActivity implements LocationListener
 {
+	private static final String TAG = "LocationsActivity";
+	
+	private Location mLocation = null;
+	private LocationManager myLocalManager;
 	private Button updateBtn;
 	private Button refreshBtn;
 	private MapView mapthumb;
@@ -41,6 +49,10 @@ public class LocationsActivity extends MapActivity
 			null,null,null);
 
 		initMap(myInfo);
+		
+		myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0, this);
+		mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
 		
 		// Since we are making use of a sync adapter, and the 
@@ -51,7 +63,15 @@ public class LocationsActivity extends MapActivity
 		{
 			public void onClick(View v)
 			{
-				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), Constants.AUTHORITY, new Bundle());
+				if (mLocation == null)
+					return;
+				ContentValues cv = new ContentValues(2);
+				cv.put(Constants.LATITUDE, mLocation.getLatitude());
+				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
+				getContentResolver().update(Constants.CONTENT_URI, cv, 
+						Constants.SERVER_KEY+"="+UserData.getId(LocationsActivity.this), null);
+				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), 
+						Constants.AUTHORITY, new Bundle());
 			}
 		});
 
@@ -59,7 +79,15 @@ public class LocationsActivity extends MapActivity
 		{
 			public void onClick(View v)
 			{
-				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), Constants.AUTHORITY, new Bundle());
+				if (mLocation == null)
+					return;
+				ContentValues cv = new ContentValues(2);
+				cv.put(Constants.LATITUDE, mLocation.getLatitude());
+				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
+				getContentResolver().update(Constants.CONTENT_URI, cv, 
+						Constants.SERVER_KEY+"="+UserData.getId(LocationsActivity.this), null);
+				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), 
+						Constants.AUTHORITY, new Bundle());
 			}
 		});
 		
@@ -89,7 +117,7 @@ public class LocationsActivity extends MapActivity
 				mapthumb.getController().animateTo(me.getMyLocation());
 				}
 		}); 
-		mapthumb.getController().setZoom(0);
+		mapthumb.getController().setZoom(3);
 		//add destination marker
 		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
@@ -130,5 +158,30 @@ public class LocationsActivity extends MapActivity
 	@Override
 	protected boolean isRouteDisplayed(){
 		return false;
+	}
+
+	@Override
+	public void onLocationChanged(Location loc)
+	{
+		mLocation = loc;		 
+		Log.v(TAG, "New coordintates! Lat: " + loc.getLatitude() + " Long: " + loc.getLongitude());
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) 
+	{
+		// Nothing
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) 
+	{
+		// Nothing.
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) 
+	{
+		// Nothing.
 	}
 }

@@ -23,8 +23,9 @@ public class RootActivity extends Activity
 	    Log.v(TAG, "needsInitialization: " + presentInitialization);
 	    if (presentInitialization)
 	    {
-	    	Intent i = new Intent(Settings.ACTION_ADD_ACCOUNT);
-	    	i.putExtra(Settings.EXTRA_AUTHORITIES, new String[] { Constants.AUTHORITY });
+//	    	Intent i = new Intent(Settings.ACTION_ADD_ACCOUNT);
+//	    	i.putExtra(Settings.EXTRA_AUTHORITIES, new String[] { Constants.AUTHORITY });
+	    	Intent i = new Intent(RootActivity.this, StartupActivity.class);
 	    	Log.v(TAG, "launching startup activity");
 	    	Log.v(TAG, i.toString());
 	    	startActivityForResult(i, INIT_TAG);

@@ -16,12 +16,14 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -50,7 +52,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 requestWindowFeature(Window.FEATURE_LEFT_ICON);
 	     setContentView(R.layout.startup);
 	     getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, android.R.drawable.ic_dialog_alert);
-	     this.setFinishOnTouchOutside(false);
+	     // Unsupported before API 11
+	     //this.setFinishOnTouchOutside(false);
 	     
 	     latLabel = (TextView)findViewById(R.id.lat_label);
 	     longLabel = (TextView)findViewById(R.id.long_label);
@@ -59,6 +62,15 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     registerButton = (Button)findViewById(R.id.register_button);
 	     syncGroup = (RadioGroup)findViewById(R.id.sync_freq);
 	     syncGroup.check(R.id.r_auto);
+	     
+	     RadioButton fifteen = (RadioButton)syncGroup.findViewById(R.id.r_fifteen);
+	     RadioButton hour = (RadioButton)syncGroup.findViewById(R.id.r_hour);
+	     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ECLAIR_MR1)
+	     {
+	    	 Log.i(TAG, "Phone has API Level lower than 8. Periodic syncs have been disabled.");
+	    	 fifteen.setEnabled(false);
+	    	 hour.setEnabled(false);
+	     }
 	     
 	     syncGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
 	     {
