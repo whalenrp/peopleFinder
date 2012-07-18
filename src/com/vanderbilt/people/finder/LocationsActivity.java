@@ -64,7 +64,9 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			public void onClick(View v)
 			{
 				if (mLocation == null)
-					return;
+					mLocation = myLocalManager.getLastKnownLocation(
+							LocationManager.NETWORK_PROVIDER);
+				
 				ContentValues cv = new ContentValues(2);
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
@@ -80,7 +82,9 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			public void onClick(View v)
 			{
 				if (mLocation == null)
-					return;
+					mLocation = myLocalManager.getLastKnownLocation(
+							LocationManager.NETWORK_PROVIDER);
+					
 				ContentValues cv = new ContentValues(2);
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());

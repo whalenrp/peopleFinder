@@ -76,7 +76,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dip"
-            android:text="(latitude here)"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="italic" />
 
@@ -96,7 +95,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dip"
             android:layout_weight="30"
-            android:text="(longitude here)"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="italic" />
 

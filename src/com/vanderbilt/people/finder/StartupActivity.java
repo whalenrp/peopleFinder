@@ -145,7 +145,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 accountManager.addAccountExplicitly(account, null, null);
 		 UserData.establishAccount(getApplicationContext(), account);
 		 
-		 Log.v(TAG, "The sync frequency is (-1 for auto): " + syncFreqSeconds);
+		 Log.v(TAG, "The sync frequency is: " + (syncFreqSeconds == -1 ? "auto" : syncFreqSeconds));
 		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
 		 if (syncFreqSeconds != -1)
 			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
