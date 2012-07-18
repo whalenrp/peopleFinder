@@ -17,6 +17,7 @@ import android.util.Log;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
+	// TODO update ip on sync
 	private final Context _context;
 	
 	private static final String TAG = "SyncAdapter";
