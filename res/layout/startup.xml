@@ -124,13 +124,13 @@
             android:id="@+id/r_fifteen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="15 min" />
+            android:text="30 sec" />
 
         <RadioButton
             android:id="@+id/r_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1 hour" />
+            android:text="5 min" />
     </RadioGroup>
 
     <Button

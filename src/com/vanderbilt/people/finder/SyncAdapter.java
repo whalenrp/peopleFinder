@@ -63,7 +63,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 										   Constants.SERVER_KEY+"="+d.getKey(), null, null);
 				
 				ContentValues cv = d.toContentValues();
-				if (c.getCount() == 0)
+				if (!d.isMarkedRemoved() && c.getCount() == 0)
 				{
 					Uri uri = provider.insert(Constants.CONTENT_URI, cv);
 					Log.v(TAG, "Inserted: " + uri.toString());

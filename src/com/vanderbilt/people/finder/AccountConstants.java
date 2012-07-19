@@ -2,7 +2,6 @@ package com.vanderbilt.people.finder;
 
 public final class AccountConstants 
 {
-	
 	/**
      * Account type string.
      */

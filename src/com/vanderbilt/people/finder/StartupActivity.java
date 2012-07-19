@@ -5,6 +5,8 @@ import com.vanderbilt.people.finder.Provider.Constants;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -82,10 +84,10 @@ public class StartupActivity extends AccountAuthenticatorActivity
 						syncFreqSeconds = -1;
 						break;
 					case R.id.r_fifteen:
-						syncFreqSeconds = 15 * 60;
+						syncFreqSeconds = 30; // now 30 sec.
 						break;
 					case R.id.r_hour:
-						syncFreqSeconds = 60 * 60;
+						syncFreqSeconds = 5 * 60;  // now 5 min.
 						break;
 				}
 			}
@@ -138,7 +140,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		});
 	 }
 	 
-	 private void registerAccount()
+	
+	private void registerAccount()
 	 {
 		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
 		 AccountManager accountManager = AccountManager.get(this);
@@ -147,7 +150,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		 
 		 Log.v(TAG, "The sync frequency is: " + (syncFreqSeconds == -1 ? "auto" : syncFreqSeconds));
 		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
-		 if (syncFreqSeconds != -1)
+		 // Will not function on devices older than api 8
+		 if (syncFreqSeconds != -1 && Build.VERSION.SDK_INT > Build.VERSION_CODES.ECLAIR_MR1)
 			 ContentResolver.addPeriodicSync(account, Constants.AUTHORITY, new Bundle(), syncFreqSeconds);
 		
 		 final Intent intent = new Intent();

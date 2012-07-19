@@ -27,7 +27,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
-	private Button updateBtn;
+//	private Button updateBtn;
 	private Button refreshBtn;
 	private MapView mapthumb;
 //	private GeoPoint center;
@@ -40,7 +40,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.locations);
 		// init variables
-		updateBtn = (Button)findViewById(R.id.postPos);
+//		updateBtn = (Button)findViewById(R.id.postPos);
 		refreshBtn = (Button)findViewById(R.id.refresh);
 		mapthumb = (MapView)findViewById(R.id.map);
 
@@ -59,32 +59,38 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		// sync adapter performs the functionality of both of
 		// these buttons in one fell swoop, they will essentially
 		// be the same.
-		updateBtn.setOnClickListener(new View.OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				if (mLocation == null)
-					mLocation = myLocalManager.getLastKnownLocation(
-							LocationManager.NETWORK_PROVIDER);
-				
-				ContentValues cv = new ContentValues(2);
-				cv.put(Constants.LATITUDE, mLocation.getLatitude());
-				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
-				getContentResolver().update(Constants.CONTENT_URI, cv, 
-						Constants.SERVER_KEY+"="+UserData.getId(LocationsActivity.this), null);
-				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), 
-						Constants.AUTHORITY, new Bundle());
-			}
-		});
+//		updateBtn.setOnClickListener(new View.OnClickListener()
+//		{
+//			public void onClick(View v)
+//			{
+//				if (mLocation == null)
+//				{
+//					mLocation = myLocalManager.getLastKnownLocation(
+//							LocationManager.NETWORK_PROVIDER);
+//					if (mLocation == null)
+//						return;
+//				}
+//				ContentValues cv = new ContentValues(2);
+//				cv.put(Constants.LATITUDE, mLocation.getLatitude());
+//				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
+//				getContentResolver().update(Constants.CONTENT_URI, cv, 
+//						Constants.SERVER_KEY+"="+UserData.getId(LocationsActivity.this), null);
+//				ContentResolver.requestSync(UserData.getAccount(getApplicationContext()), 
+//						Constants.AUTHORITY, new Bundle());
+//			}
+//		});
 
 		refreshBtn.setOnClickListener(new View.OnClickListener()
 		{
 			public void onClick(View v)
 			{
 				if (mLocation == null)
+				{
 					mLocation = myLocalManager.getLastKnownLocation(
 							LocationManager.NETWORK_PROVIDER);
-					
+					if (mLocation == null)
+						return;
+				}
 				ContentValues cv = new ContentValues(2);
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
