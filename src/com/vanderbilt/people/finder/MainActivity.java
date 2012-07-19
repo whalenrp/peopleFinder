@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.View;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.CursorLoader;
@@ -41,6 +42,9 @@ public class MainActivity extends FragmentActivity
 	private EditText statusEditText;
 	private TextView statusLabelText;
 	private Button leaveNetworkButton;
+	private Button registerAccountButton;
+	private Button mapLauncherButton;
+	private Button okButton;
 
     /** Called when the activity is first created. */
     @Override
@@ -53,8 +57,15 @@ public class MainActivity extends FragmentActivity
         statusEditText = (EditText)findViewById(R.id.edit_text_status);
         statusLabelText = (TextView)findViewById(R.id.status_text);
         leaveNetworkButton = (Button)findViewById(R.id.btn_leave);
-        
+        registerAccountButton = (Button)findViewById(R.id.btn_register);
+        mapLauncherButton = (Button)findViewById(R.id.mapLauncher);
+        okButton = (Button)findViewById(R.id.ok_button);
 		mList = (ListView)findViewById(R.id.list);
+		
+		// If the user has removed their account, the UI should be modified
+		// to reflect the change in functionality (as well as offering a chance
+		// to create a new account).
+		
 		
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(this, 
@@ -74,6 +85,15 @@ public class MainActivity extends FragmentActivity
     	}
 		c.close();		
 		getSupportLoaderManager().initLoader(0, null, this);
+		
+		registerAccountButton.setOnClickListener(new View.OnClickListener() 
+		{
+			public void onClick(View v) 
+			{
+				startActivity(new Intent(MainActivity.this, RootActivity.class));
+				finish();
+			}
+		});
     }
     
     // Called when leave network button is pressed.
@@ -122,6 +142,16 @@ public class MainActivity extends FragmentActivity
 		}
 	}
 	
+	private void uiSkinNoAccount()
+	{
+		registerAccountButton.setVisibility(View.VISIBLE);
+		mapLauncherButton.setVisibility(View.INVISIBLE);
+		leaveNetworkButton.setVisibility(View.INVISIBLE);
+		
+		statusEditText.setEnabled(false);
+		okButton.setEnabled(false);
+	}
+	
 	private class LeaveNetworkTask extends AsyncTask<Void, Void, Boolean>
 	{
 		private ProgressDialog progress;
@@ -158,7 +188,16 @@ public class MainActivity extends FragmentActivity
 			progress.dismiss();
 			if (b)
 			{
-				leaveNetworkButton.setEnabled(false);
+				// Clear application settings
+				UserData.clearAccount(getApplicationContext());
+				UserData.clearId(getApplicationContext());
+				
+				// Delete all entries from database
+				int i = getContentResolver().delete(Constants.CONTENT_URI, null, null);
+				Log.v(TAG, i + " item(s) removed due to network unregister.");
+				
+				// Update UI to reflect account status
+				uiSkinNoAccount();
 				Toast.makeText(getApplicationContext(), "Left network", Toast.LENGTH_SHORT).show();
 			}
 			else

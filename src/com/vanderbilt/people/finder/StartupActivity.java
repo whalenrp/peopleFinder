@@ -141,12 +141,13 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	 }
 	 
 	
+	@SuppressLint("NewApi")
 	private void registerAccount()
 	 {
 		 final Account account = new Account(nameEditText.getText().toString(), AccountConstants.ACCOUNT_TYPE);
 		 AccountManager accountManager = AccountManager.get(this);
 		 accountManager.addAccountExplicitly(account, null, null);
-		 UserData.establishAccount(getApplicationContext(), account);
+		 UserData.setAccount(getApplicationContext(), account);
 		 
 		 Log.v(TAG, "The sync frequency is: " + (syncFreqSeconds == -1 ? "auto" : syncFreqSeconds));
 		 ContentResolver.setSyncAutomatically(account, Constants.AUTHORITY, true);
@@ -182,7 +183,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		
 		protected void onPostExecute(Long l)
 		{
-			UserData.establishId(StartupActivity.this, l);
+			UserData.setId(StartupActivity.this, l);
 			
 			ContentValues cv = new ContentValues();
 			cv.put(Constants.SERVER_KEY, UserData.getId(StartupActivity.this));

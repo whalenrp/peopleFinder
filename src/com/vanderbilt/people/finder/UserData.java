@@ -13,47 +13,71 @@ public final class UserData
 	// Non-instantiable, it's a singleton.
 	private UserData() {}
 	
-	public static void establishAccount(Context context, Account account)
+	public static boolean needsInitialization(Context context)
 	{
-		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
-		if (!settings.contains(ACCOUNT_NAME))
-		{
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putString(ACCOUNT_NAME, account.name);
-			editor.commit();
-		}
+		return (getAccount(context) == null && getId(context) == null);
 	}
 	
+	public static void clearAccount(Context context)
+	{
+		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(ACCOUNT_NAME, null);
+		editor.commit();
+	}
+	
+	public static void clearId(Context context)
+	{
+		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putLong(USER_ID, -1);
+		editor.commit();
+	}
+	
+	public static void setAccount(Context context, Account account)
+	{
+		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(ACCOUNT_NAME, account.name);
+		editor.commit();
+	}
+	
+	/**
+	 * Will return null if the Account isn't found.
+	 * @param context
+	 * @return
+	 */
 	public static Account getAccount(Context context)
 	{ 
 		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
 		String accountName = settings.getString(ACCOUNT_NAME, null);
 		AccountManager accountManager = AccountManager.get(context);
-		for (Account a : accountManager.getAccountsByType(AccountConstants.ACCOUNT_TYPE))
+		if (accountName != null)
 		{
-			if (accountName.equals(a.name))
-				return a;
+			for (Account a : accountManager.getAccountsByType(AccountConstants.ACCOUNT_TYPE))
+			{
+				if (accountName.equals(a.name))
+					return a;
+			}
 		}
+		
 		return null;
 	}
 
 	/**
-	 * Establishes the id for the app user for easy access during Content
-	 * Provider operations. If the id has already been set, it will ignore
+	 * Sets the id for the app user for easy access during Content
+	 * Provider operations.
 	 * this call. 
 	 * 
 	 * @param context
 	 * @param id
 	 */
-	public static void establishId(Context context, long id)
+	public static void setId(Context context, long id)
 	{
 		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
-		if (!settings.contains(USER_ID))
-		{
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putLong(USER_ID, id);
-			editor.commit();
-		}
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putLong(USER_ID, id);
+		editor.commit();
 	}
 	
 	/**
@@ -64,9 +88,17 @@ public final class UserData
 	 * @param context
 	 * @return
 	 */
-	public static long getId(Context context)
+	public static Long getId(Context context)
 	{ 
 		SharedPreferences settings = context.getSharedPreferences("UserData", Context.MODE_PRIVATE);
-		return settings.getLong(USER_ID, -1);
+		Long id = settings.getLong(USER_ID, -1);
+		if (id == -1)
+		{
+			return null;
+		}
+		else
+		{
+			return id;
+		}
 	}
 }
