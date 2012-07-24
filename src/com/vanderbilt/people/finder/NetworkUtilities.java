@@ -1,6 +1,10 @@
 package com.vanderbilt.people.finder;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -57,25 +61,28 @@ public final class NetworkUtilities
 	
 	public static String getMyExternalIp()
 	{
-		HttpClient httpClient = getHttpClient();
 		try
-		{
-			final HttpGet httpget = new HttpGet(EXTERNAL_IP_URL);
-			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			String responseBody = httpClient.execute(httpget, responseHandler);
-			Log.v(TAG, "external ip: " + responseBody);
-			
-			return responseBody;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		finally
-		{
-			httpClient.getConnectionManager().shutdown();
-		}
-			
+        {
+			Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+        	while (en.hasMoreElements())
+        	{
+        		NetworkInterface intf = en.nextElement();
+        		Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+        		while (enumIpAddr.hasMoreElements())
+        		{
+        			InetAddress inetAddress = enumIpAddr.nextElement();
+        			if (!inetAddress.isLoopbackAddress())
+        			{
+        				return inetAddress.getHostAddress().toString();    				
+        			}
+        		}
+        	}
+        }
+        catch (Exception e)
+        {
+        	e.printStackTrace();
+        }
+		
 		return null;
 	}
 	

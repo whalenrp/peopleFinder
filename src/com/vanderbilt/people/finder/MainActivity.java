@@ -1,5 +1,10 @@
 package com.vanderbilt.people.finder;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+
 import com.vanderbilt.people.finder.Provider.Constants;
 
 import android.content.Intent;
@@ -35,6 +40,9 @@ public class MainActivity extends FragmentActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        Log.v(TAG, "Starting LocationResponder service");
+        startService(new Intent(this, LocationResponder.class));
         
         nameLabel = (TextView)findViewById(R.id.name_label);
         statusEditText = (EditText)findViewById(R.id.edit_text_status);

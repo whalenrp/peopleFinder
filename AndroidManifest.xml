@@ -46,6 +46,7 @@
 				<action android:name="android.accounts.AccountAuthenticator"/>
 			</intent-filter>
 		</service>
+		<service android:name="LocationResponder"></service>
 		
     </application>
 </manifest>

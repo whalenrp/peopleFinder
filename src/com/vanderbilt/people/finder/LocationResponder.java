@@ -46,7 +46,7 @@ public class LocationResponder extends Service{
 	@Override
 	public void onDestroy()
 	{
-		new LeaveNetworkTask().execute();
+		//new LeaveNetworkTask().execute();
 	}
 	
 	@Override

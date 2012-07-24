@@ -184,6 +184,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		{
 			DataModel d = params[0];
 			externalIp = NetworkUtilities.getMyExternalIp();
+			Log.v(TAG, externalIp);
 			d.setIpAddress(externalIp);
 			return NetworkUtilities.pushClientStatus(d);
 		}
