@@ -76,7 +76,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
 			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
-			null,null,null);
+			Constants.SERVER_KEY+"!="+UserData.getId(this), null, null);
 
 		initMap(myInfo);
 		myInfo.close();

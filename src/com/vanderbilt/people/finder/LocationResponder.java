@@ -6,9 +6,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.vanderbilt.people.finder.Provider.Constants;
+
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.Looper;
@@ -62,6 +70,40 @@ public class LocationResponder extends Service{
 					
 					String message = convertStreamToString(server.getInputStream());
 					Log.v(TAG, message);
+					DataModel d = new DataModel();
+					try
+					{
+						d = new DataModel(new JSONObject(message));
+					}
+					catch (JSONException e)
+					{
+						Log.w(TAG, "error processing incoming json: " + e.toString());
+					}
+					
+					Cursor c = getContentResolver().query(Constants.CONTENT_URI,
+	   						new String[] { Constants.SERVER_KEY },
+	   						Constants.SERVER_KEY+"="+d.getKey(), null, null);
+
+					ContentValues cv = d.toContentValues();
+					if (c.getCount() == 0)
+					{
+					Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
+					Log.v(TAG, "Inserted: " + uri.toString());
+					}
+					else if (d.isMarkedRemoved())
+					{
+					int i = getContentResolver().delete(Constants.CONTENT_URI,
+										Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.v(TAG, "Deleted " + i + "item(s).");
+					}
+					else
+					{
+					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+										Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.v(TAG, "Updated " + i + "item(s).");
+					}
+					
+					c.close();
 					//String command = in.readLine();
 					//command = command.trim();
 					//String args[] = command.split(" ");
