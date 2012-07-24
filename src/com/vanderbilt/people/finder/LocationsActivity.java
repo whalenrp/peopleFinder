@@ -11,6 +11,8 @@ import android.app.AlertDialog;
 import android.graphics.drawable.Drawable;
 
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -54,7 +56,8 @@ import android.util.Log;
 
 public class LocationsActivity extends MapActivity implements LocationListener
 {
-	private SendPositionTask task = new SendPositionTask(this);
+	private static final String TAG = "LocationsActivity";
+//	private SendPositionTask task = new SendPositionTask();
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
 	private MapView mapthumb;
@@ -112,14 +115,27 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		mLocation = me.getLastFix();
 		if (!myLocalManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
 			buildAlertMessageNoGPS();
-		}else{
-			if (mLocation == null){
+		}
+		else
+		{
+			if (mLocation == null)
+			{
 				Toast.makeText(this, "Please wait. I'm getting a fix on your location",
 					Toast.LENGTH_LONG)
 					.show();
-			}else{
-				if (!task.isRunning())
-					task.execute();
+			}
+			else
+			{
+				ContentValues cv = new ContentValues(3);
+				cv.put(Constants.IP, NetworkUtilities.getMyExternalIp());
+				cv.put(Constants.LATITUDE, mLocation.getLatitude());
+				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
+				int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+						Constants.SERVER_KEY+"="+UserData.getId(this), null);
+				Log.v(TAG, i + " item(s) updated.");
+				new SendPositionTask().execute();
+//				if (!task.isRunning())
+//					task.execute();
 			}
 		}
 	}
@@ -128,9 +144,10 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * Refreshes the list of peers by attempting to sync with the 
 	 * directory server. 
 	 */
-	public void refreshPeers(View view){
-//		String tmp = getMyExternalIp();
-//		Log.i("LocationsActivity", tmp);
+	public void refreshPeers(View view)
+	{
+		ContentResolver.requestSync(UserData.getAccount(getApplicationContext()),
+									Constants.AUTHORITY, new Bundle());
 	}
 
 	// Private function for constructing a dialog in the event of no GPS
@@ -254,13 +271,13 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * to enable GPS to get a fix on position.
 	 */
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>{
-		private Context context;
-		private String myIp = "";
+//		private Context context;
+//		private String myIp = "";
 		private boolean isRunning;
 
-		public SendPositionTask(Context context){
-			this.context = context;
-		}
+//		public SendPositionTask(Context context){
+//			this.context = context;
+//		}
 
 		@Override
 		protected void onPreExecute(){
@@ -268,16 +285,44 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		}
 
 		@Override
-		protected Void doInBackground(Void... items){
+		protected Void doInBackground(Void... items)
+		{
+			long id = UserData.getId(LocationsActivity.this);
+			
+			// Package user info to send via JSON to peers
+			Cursor userData = getContentResolver().query(Constants.CONTENT_URI, null,
+														 Constants.SERVER_KEY+"="+id, null, null);
+			DataModel d = new DataModel(id);
+			if (userData.moveToFirst())
+			{
+				d.setName(userData.getString(userData.getColumnIndex(Constants.NAME)));
+				d.setStatus(userData.getString(userData.getColumnIndex(Constants.MESSAGE)));
+				d.setLatitude(userData.getDouble(userData.getColumnIndex(Constants.LATITUDE)));
+				d.setLongitude(userData.getDouble(userData.getColumnIndex(Constants.LONGITUDE)));
+				d.setIpAddress(userData.getString(userData.getColumnIndex(Constants.IP)));
+			}
+			userData.close();
+			String delivery = "";
+			try
+			{
+				delivery = d.toJSON().toString();
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			
+			
 			// Get list of IPs to send position to
-			Cursor c = context.getContentResolver().query(Constants.CONTENT_URI,
-				new String[]{Constants.IP},
-				null, null, null);
+			Cursor c = getContentResolver().query(Constants.CONTENT_URI,
+												  new String[]{Constants.IP},
+												  Constants.SERVER_KEY+"!="+UserData.getId(LocationsActivity.this),
+												  null, null);
 
 			// Get device's IP address
-			if (myIp.equals("")){
-				myIp = new String(getMyExternalIp());
-			}
+//			if (myIp.equals("")){
+//				myIp = new String(NetworkUtilities.getMyExternalIp());
+//			}
 
 			// initialize Connect objects for every IP in the database
 			ArrayList<Connection> mPeers = new ArrayList<Connection>();
@@ -290,8 +335,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			while (iter.hasNext()){
 				Connection conn = iter.next();
 				if (conn.openConnection()){
-					conn.putString("update " + myIp + " " + 
-						mLocation.getLatitude() + " " + mLocation.getLongitude());
+					conn.putString(delivery);
 				}
 				conn.closeConnection();
 			}
@@ -324,8 +368,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		public Connection(String ip){
 			this.ip = ip;
 			valid=false;
-			Log.i("LocationsActivity.Connection", 
-				"Created Connection object with ip: " + ip);
+			Log.v(TAG, "Created Connection object with ip: " + ip);
 		}
 
 		public boolean openConnection(){
@@ -335,8 +378,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				valid = true;
 				return true;
 			}catch(Exception e){
-				Log.i("LocationsActivity.Connection", 
-					"Failed to open port with ip: " + ip);
+				Log.w(TAG, "Failed to open connection with error: " + e.toString());
 				valid=false;
 				return false;
 			}
@@ -354,45 +396,45 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				try{
 					socket.close();
 				}catch(IOException e){
-					Log.i(getClass().getName(), "Could not close socket with ip: " + ip);
+					Log.i(getClass().getName(), "Could not close socket with error: " + e.toString());
 				}
 			}
 			valid = false;
 		}
 	}
 
-	private String getMyExternalIp(){
-		try{
-			URL url = null;
-			HttpURLConnection conn = null;
-
-			url = new URL("http://api.externalip.net/ip/");
-			conn = (HttpURLConnection)url.openConnection();
-
-			InputStream in = null;
-			try{
-				in = new BufferedInputStream(conn.getInputStream());
-			}catch(IOException e){
-				e.printStackTrace();
-				return "";
-			}
-			String responseString = convertStreamToString(in);
-
-			if (responseString.length() == 0) return "";
-			conn.disconnect();
-
-			return responseString;
-
-
-		}catch(MalformedURLException e){
-			Log.w("SyncService", "URL no longer valid");
-			e.printStackTrace();
-		}catch(IOException e){
-			Log.w("SyncService", "Connection could not be established.");
-			e.printStackTrace();
-		}
-		return "";
-	}
+//	private String getMyExternalIp(){
+//		try{
+//			URL url = null;
+//			HttpURLConnection conn = null;
+//
+//			url = new URL("http://api.externalip.net/ip/");
+//			conn = (HttpURLConnection)url.openConnection();
+//
+//			InputStream in = null;
+//			try{
+//				in = new BufferedInputStream(conn.getInputStream());
+//			}catch(IOException e){
+//				e.printStackTrace();
+//				return "";
+//			}
+//			String responseString = convertStreamToString(in);
+//
+//			if (responseString.length() == 0) return "";
+//			conn.disconnect();
+//
+//			return responseString;
+//
+//
+//		}catch(MalformedURLException e){
+//			Log.w("SyncService", "URL no longer valid");
+//			e.printStackTrace();
+//		}catch(IOException e){
+//			Log.w("SyncService", "Connection could not be established.");
+//			e.printStackTrace();
+//		}
+//		return "";
+//	}
 
     // Helper function for reading input stream
     // retrieved from http://stackoverflow.com/a/5445161/793208
