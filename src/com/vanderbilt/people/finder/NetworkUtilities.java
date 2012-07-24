@@ -43,8 +43,6 @@ public final class NetworkUtilities
 	private static final String REMOVE = "/remove";
 	private static final String IP = "/ip";
 	
-	private static final String EXTERNAL_IP_URL = "http://api.externalip.net/ip/";
-	
 	private static final String GET_PARAM_SKEY = "?skey=";
 	private static final String POST_PARAM_JSON_PACKAGE = "json_package";
 	private static final String POST_PARAM_REMOVAL_KEY = "removal_key";
@@ -96,11 +94,11 @@ public final class NetworkUtilities
 		try
 		{
 			final HttpGet httpget = new HttpGet(urlFull);
-			Log.i(TAG, "executing request " + httpget.getURI());
+			Log.v(TAG, "executing request " + httpget.getURI());
 			
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String responseBody = httpClient.execute(httpget, responseHandler);
-			Log.d(TAG, responseBody);
+			Log.v(TAG, responseBody);
 			JSONArray array = new JSONArray(responseBody);
 			
 			for (int i = 0; i < array.length(); i++)
@@ -178,7 +176,6 @@ public final class NetworkUtilities
 			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
 			HttpEntity entity = new UrlEncodedFormEntity(params);
 			
-			Log.v(TAG, "Posting update");
 			final HttpPost httpPost = new HttpPost(urlFull);
 			httpPost.addHeader(entity.getContentType());
 	        httpPost.setEntity(entity);
@@ -189,7 +186,7 @@ public final class NetworkUtilities
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			Log.e(TAG, e.toString());
 		}
 		finally
 		{
@@ -218,11 +215,11 @@ public final class NetworkUtilities
 		try
 		{
 			final HttpGet httpget = new HttpGet(urlFull);
-			Log.i(TAG, "executing request " + httpget.getURI());
+			Log.v(TAG, "executing request " + httpget.getURI());
 			
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String responseBody = httpClient.execute(httpget, responseHandler);
-			Log.d(TAG, responseBody);
+			Log.v(TAG, responseBody);
 			JSONArray array = new JSONArray(responseBody);
 			
 			for (int i = 0; i < array.length(); i++)

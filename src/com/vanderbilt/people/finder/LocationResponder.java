@@ -59,14 +59,19 @@ public class LocationResponder extends Service{
 //			context = c;
 //		}
 
-	    public void run () {
-			try {
+	    public void run () 
+	    {
+			try 
+			{
 				ServerSocket listener = new ServerSocket(PORT);
-				Looper.prepare();
-
+//				Looper.prepare();
+				
+				while (true)
+				{
 					Socket server = listener.accept();
-					//PrintWriter out = new PrintWriter(server.getOutputStream(), true);
-					//DataInputStream in = new DataInputStream (server.getInputStream());
+					Log.v(TAG, "has accepted connection");
+//					PrintWriter out = new PrintWriter(server.getOutputStream(), true);
+//					DataInputStream in = new DataInputStream (server.getInputStream());
 					
 					String message = convertStreamToString(server.getInputStream());
 					Log.v(TAG, message);
@@ -104,15 +109,15 @@ public class LocationResponder extends Service{
 					}
 					
 					c.close();
-					//String command = in.readLine();
-					//command = command.trim();
-					//String args[] = command.split(" ");
+//					String command = in.readLine();
+//					command = command.trim();
+//					String args[] = command.split(" ");
 //					if(args[0].equals("update"))
 //					{
 //						String ip = args[1];
 //						double latitude = Double.parseDouble(args[2]);
 //						double longitude = Double.parseDouble(args[3]);
-	//
+					
 //						ContentValues cv = new ContentValues();
 //						cv.put(Constants.IP, ip);
 //						cv.put(Constants.LATITUDE, latitude);
@@ -122,14 +127,17 @@ public class LocationResponder extends Service{
 //							Constants.IP + "=?",
 //							new String[]{ip});
 //						Log.i("MainActivity", "Updated " + i + " entries.");
-	//
+
 //					}
-					//out.close();
+//					out.close();
 //					in.close();
 					server.close();
 
-				Looper.loop();
-			}
+//					Looper.loop();
+					Log.d(TAG, "Exited out the loop.");
+				}
+				}
+				
 			catch (IOException e) 
 			{
 				e.printStackTrace();

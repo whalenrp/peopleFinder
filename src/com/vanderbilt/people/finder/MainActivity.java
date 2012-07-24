@@ -1,26 +1,21 @@
 package com.vanderbilt.people.finder;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
-
-import com.vanderbilt.people.finder.Provider.Constants;
-
+import android.content.ContentValues;
 import android.content.Intent;
-import android.view.View;
+import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.os.Bundle;
+
+import com.vanderbilt.people.finder.Provider.Constants;
 
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>

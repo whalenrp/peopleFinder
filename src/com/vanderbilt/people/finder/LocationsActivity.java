@@ -1,58 +1,38 @@
 package com.vanderbilt.people.finder;
 
-import com.vanderbilt.people.finder.Provider.Constants;
-import com.google.android.maps.MapView;
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapActivity;
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.OverlayItem;
-import com.google.android.maps.MyLocationOverlay;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+
 import android.app.AlertDialog;
-import android.graphics.drawable.Drawable;
-
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-
-
 import android.database.Cursor;
-
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-
 import android.os.AsyncTask;
-
 import android.os.Bundle;
-import android.view.View;
-
-import android.widget.Toast;
 import android.provider.Settings;
-
-
-
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-
-import java.util.NoSuchElementException;
-
-import java.io.PrintStream;
-import java.net.Socket;
-
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.ListIterator;
-
-
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapView;
+import com.google.android.maps.MyLocationOverlay;
+import com.google.android.maps.OverlayItem;
+import com.vanderbilt.people.finder.Provider.Constants;
 
 public class LocationsActivity extends MapActivity implements LocationListener
 {
@@ -60,9 +40,9 @@ public class LocationsActivity extends MapActivity implements LocationListener
 //	private SendPositionTask task = new SendPositionTask();
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
-	private MapView mapthumb;
+	private MapView mapView;
 //	private GeoPoint center;
-	private MyLocationOverlay me = null;
+	private MyLocationOverlay myLocOverlay = null;
 
     /** Called when the activity is first created. */
     @Override
@@ -72,7 +52,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
         setContentView(R.layout.locations);
 
 		// init variables
-		mapthumb = (MapView)findViewById(R.id.map);
+		mapView = (MapView)findViewById(R.id.map);
 
 		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
 			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
@@ -89,12 +69,12 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	
 	public void onResume(){
 		super.onResume();
-		me.enableMyLocation();
+		myLocOverlay.enableMyLocation();
 	}
 
 	public void onPause(){
 		super.onPause();
-		me.disableMyLocation();
+		myLocOverlay.disableMyLocation();
 	}
 
 	///////////////////////////////////////////
@@ -112,7 +92,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		// if GPS enabled
 			// if no location, make toast telling to wait
 			// else call AsyncTask.execute()
-		mLocation = me.getLastFix();
+		mLocation = myLocOverlay.getLastFix();
 		if (!myLocalManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
 			buildAlertMessageNoGPS();
 		}
@@ -142,7 +122,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 	/**
 	 * Refreshes the list of peers by attempting to sync with the 
-	 * directory server. 
+	 * directory server. Also updates positions on map.
 	 */
 	public void refreshPeers(View view)
 	{
@@ -179,7 +159,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		double latitude = loc.getLatitude();
 		double longitude = loc.getLongitude();		 
 
-		Log.i("LocationsActivity", "New coordintates: " + latitude + " " + longitude);
+		Log.v("LocationsActivity", "New coordintates: " + latitude + " " + longitude);
 		
 	}
 
@@ -187,9 +167,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	public void onProviderDisabled(String provider) {}
 	 
 	@Override
-	public void onProviderEnabled(String provider){
-		
-	}
+	public void onProviderEnabled(String provider){}
 	 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras){}
@@ -204,23 +182,27 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * longitude and latitude
 	 */
 	private GeoPoint getPoint(double lat, double lon){
-		Log.i("LocationsActivity", "Latitude: " + lat + ", Longitude: " + lon);
+		Log.v("LocationsActivity", "Latitude: " + lat + ", Longitude: " + lon);
 		return new GeoPoint((int)(lat*1000000), (int)(lon*1000000));
 	}
 
-	private void initMap(Cursor c){
-		me = new MyLocationOverlay(this, mapthumb);
-		mapthumb.getOverlays().add(me);	
-		me.runOnFirstFix(new Runnable() {
-			public void run() {
-				mapthumb.getController().animateTo(me.getMyLocation());
-				}
+	private void initMap(Cursor c)
+	{
+		myLocOverlay = new MyLocationOverlay(this, mapView);
+		mapView.getOverlays().add(myLocOverlay);	
+		myLocOverlay.runOnFirstFix(new Runnable() 
+		{
+			public void run() 
+			{
+				mapView.getController().animateTo(myLocOverlay.getMyLocation());
+			}
 		}); 
-		mapthumb.getController().setZoom(0);
+		mapView.getController().setZoom(16);
 		//add destination marker
 		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
-		mapthumb.getOverlays().add(new SiteOverlay(marker, c));
+		mapView.getOverlays().add(new SiteOverlay(marker, c));
+		c.close();
 		// Add location marker
 	}
 
@@ -231,16 +213,15 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		public SiteOverlay(Drawable marker, Cursor c){
 			super(marker);
 			boundCenterBottom(marker);
-			
-			c.moveToFirst();
-			while (!c.isAfterLast()){
+			while (c.moveToNext())
+			{
 				GeoPoint point = getPoint(c.getDouble(c.getColumnIndex(Constants.LATITUDE)), 
 					c.getDouble(c.getColumnIndex(Constants.LONGITUDE)));
 				positions.add(new OverlayItem(point,
 					c.getString(c.getColumnIndex(Constants.NAME)), 
 					null));
-				c.moveToNext();
 			}
+			c.close();
 			populate();
 		}
 
@@ -273,16 +254,16 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>{
 //		private Context context;
 //		private String myIp = "";
-		private boolean isRunning;
+//		private boolean isRunning;
 
 //		public SendPositionTask(Context context){
 //			this.context = context;
 //		}
 
-		@Override
-		protected void onPreExecute(){
-			isRunning = true;
-		}
+//		@Override
+//		protected void onPreExecute(){
+//			isRunning = true;
+//		}
 
 		@Override
 		protected Void doInBackground(Void... items)
@@ -343,14 +324,14 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			return null;
 		}
 
-		@Override
-		protected void onPostExecute(Void empty){
-			isRunning = false;
-		}
+//		@Override
+//		protected void onPostExecute(Void empty){
+//			isRunning = false;
+//		}
 
-		public boolean isRunning(){
-			return isRunning;
-		}
+//		public boolean isRunning(){
+//			return isRunning;
+//		}
 		
 	}
 
@@ -396,7 +377,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				try{
 					socket.close();
 				}catch(IOException e){
-					Log.i(getClass().getName(), "Could not close socket with error: " + e.toString());
+					Log.w(getClass().getName(), "Could not close socket with error: " + e.toString());
 				}
 			}
 			valid = false;

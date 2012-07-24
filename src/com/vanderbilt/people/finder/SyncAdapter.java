@@ -13,74 +13,76 @@ import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.util.Log;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
-	// TODO update ip on sync
-	private final Context _context;
-	
 	private static final String TAG = "SyncAdapter";
 	
 	public SyncAdapter(Context context, boolean autoInitialize)
 	{
 		super(context, autoInitialize);
-		_context = context;
 	}
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult)
 	{	
-		Cursor userEntry = _context.getContentResolver().query(Constants.CONTENT_URI,
-					new String[] { Constants.NAME, Constants.MESSAGE, Constants.SERVER_KEY,
-								   Constants.LONGITUDE, Constants.LATITUDE, Constants.IP },
-					Constants.SERVER_KEY+"="+UserData.getId(_context), null, null);
-		
-		DataModel dataToSend = null;
-		if (userEntry.moveToFirst())
+		Cursor c = null;
+		try
 		{
-			dataToSend = new DataModel(userEntry.getLong(userEntry.getColumnIndex(Constants.SERVER_KEY)));
-			dataToSend.setName(userEntry.getString(userEntry.getColumnIndex(Constants.NAME)));
-			dataToSend.setStatus(userEntry.getString(userEntry.getColumnIndex(Constants.MESSAGE)));
-			dataToSend.setLatitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LATITUDE)));
-			dataToSend.setLongitude(userEntry.getDouble(userEntry.getColumnIndex(Constants.LONGITUDE)));
-			dataToSend.setIpAddress(userEntry.getString(userEntry.getColumnIndex(Constants.IP)));
+			c = provider.query(Constants.CONTENT_URI,
+							   new String[] { Constants.NAME, Constants.MESSAGE, Constants.SERVER_KEY,
+								   			  Constants.LONGITUDE, Constants.LATITUDE, Constants.IP },
+							   Constants.SERVER_KEY+"="+UserData.getId(getContext()), null, null);
+		
+			DataModel dataToSend = null;
+			if (c.moveToFirst())
+			{
+				dataToSend = new DataModel(c.getLong(c.getColumnIndex(Constants.SERVER_KEY)));
+				dataToSend.setIpAddress(c.getString(c.getColumnIndex(Constants.IP)));
+			}
+		
+			// Send data to server, get peer data back
+			Log.v(TAG, "Pushing ip address to server.");
+			NetworkUtilities.pushClientStatus(dataToSend);
+			Log.v(TAG, "Downloading peer ip addresses.");
+			List<DataModel> returnedItems = NetworkUtilities.requestIpAddresses(UserData.getId(getContext()));
+		
+			for (DataModel d : returnedItems)
+			{
+				c = provider.query(Constants.CONTENT_URI, new String[] { Constants.SERVER_KEY },
+								   Constants.SERVER_KEY+"="+d.getKey(), null, null);
+			
+				ContentValues cv = d.toContentValues();
+				if (!d.isMarkedRemoved() && c.getCount() == 0)
+				{
+					Uri uri = provider.insert(Constants.CONTENT_URI, cv);
+					Log.v(TAG, "Inserted: " + uri.toString());
+				}
+				else if (d.isMarkedRemoved())
+				{
+					int i = provider.delete(Constants.CONTENT_URI, Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.v(TAG, "Deleted " + i + " item(s).");
+				}
+				else
+				{
+					int i = provider.update(Constants.CONTENT_URI, cv, Constants.SERVER_KEY+"="+d.getKey(), null);
+					Log.v(TAG, "Updated " + i + " item(s).");
+				}
+			}
 		}
-		userEntry.close();
-		
-		// Send dirty records to server while receiving updates
-		Long returnedKey = NetworkUtilities.pushClientStatus(dataToSend);
-		Log.v(TAG, UserData.getId(_context) + " returned " + returnedKey);
-//		List<DataModel> returnedItems = NetworkUtilities.getPeerUpdates(UserData.getId(_context));
-		List<DataModel> returnedItems = NetworkUtilities.requestIpAddresses(UserData.getId(getContext()));
-		
-		for (DataModel d : returnedItems)
+		catch (RemoteException e)
 		{
-			Cursor c = _context.getContentResolver().query(Constants.CONTENT_URI,
-									   new String[] { Constants.SERVER_KEY },
-									   Constants.SERVER_KEY+"="+d.getKey(), null, null);
-			
-			ContentValues cv = d.toContentValues();
-			if (c.getCount() == 0)
+			e.printStackTrace();
+		}
+		finally
+		{
+			if (c != null)
 			{
-				Uri uri = _context.getContentResolver().insert(Constants.CONTENT_URI, cv);
-				Log.v(TAG, "Inserted: " + uri.toString());
+				c.close();
 			}
-			else if (d.isMarkedRemoved())
-			{
-				int i = _context.getContentResolver().delete(Constants.CONTENT_URI,
-													Constants.SERVER_KEY+"="+d.getKey(), null);
-				Log.v(TAG, "Deleted " + i + "item(s).");
-			}
-			else
-			{
-				int i = _context.getContentResolver().update(Constants.CONTENT_URI, cv,
-													Constants.SERVER_KEY+"="+d.getKey(), null);
-				Log.v(TAG, "Updated " + i + "item(s).");
-			}
-			
-			c.close();
 		}
 	}
 }
