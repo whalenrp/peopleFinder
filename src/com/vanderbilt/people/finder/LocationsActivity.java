@@ -37,11 +37,9 @@ import com.vanderbilt.people.finder.Provider.Constants;
 public class LocationsActivity extends MapActivity implements LocationListener
 {
 	private static final String TAG = "LocationsActivity";
-//	private SendPositionTask task = new SendPositionTask();
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
 	private MapView mapView;
-//	private GeoPoint center;
 	private MyLocationOverlay myLocOverlay = null;
 
     /** Called when the activity is first created. */
@@ -64,7 +62,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0, this);
 		mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		//myLocalManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0, this);
     }
 	
 	public void onResume(){
@@ -114,8 +111,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 						Constants.SERVER_KEY+"="+UserData.getId(this), null);
 				Log.v(TAG, i + " item(s) updated.");
 				new SendPositionTask().execute();
-//				if (!task.isRunning())
-//					task.execute();
 			}
 		}
 	}
@@ -251,20 +246,8 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	 * If no last known position has been specified, it will prompt the user
 	 * to enable GPS to get a fix on position.
 	 */
-	private class SendPositionTask extends AsyncTask<Void, Void, Void>{
-//		private Context context;
-//		private String myIp = "";
-//		private boolean isRunning;
-
-//		public SendPositionTask(Context context){
-//			this.context = context;
-//		}
-
-//		@Override
-//		protected void onPreExecute(){
-//			isRunning = true;
-//		}
-
+	private class SendPositionTask extends AsyncTask<Void, Void, Void>
+	{
 		@Override
 		protected Void doInBackground(Void... items)
 		{
@@ -283,148 +266,22 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				d.setIpAddress(userData.getString(userData.getColumnIndex(Constants.IP)));
 			}
 			userData.close();
-			String delivery = "";
-			try
-			{
-				delivery = d.toJSON().toString();
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-			
 			
 			// Get list of IPs to send position to
 			Cursor c = getContentResolver().query(Constants.CONTENT_URI,
 												  new String[]{Constants.IP},
-												  Constants.SERVER_KEY+"!="+UserData.getId(LocationsActivity.this),
+												  Constants.SERVER_KEY+"!="+id,
 												  null, null);
-
-			// Get device's IP address
-//			if (myIp.equals("")){
-//				myIp = new String(NetworkUtilities.getMyExternalIp());
-//			}
-
-			// initialize Connect objects for every IP in the database
-			ArrayList<Connection> mPeers = new ArrayList<Connection>();
-			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
-				mPeers.add(new Connection(c.getString(c.getColumnIndex(Constants.IP))));
-
-
-			// Open ports and Send updates to all peers.
-			ListIterator<Connection> iter = mPeers.listIterator(0);
-			while (iter.hasNext()){
-				Connection conn = iter.next();
-				if (conn.openConnection()){
-					conn.putString(delivery);
-				}
-				conn.closeConnection();
+			
+			List<String> ipAddresses = new ArrayList<String>();
+			while (c.moveToNext())
+			{
+				ipAddresses.add(c.getString(c.getColumnIndex(Constants.IP)));
 			}
-
+			c.close();
+			
+			NetworkUtilities.pushUpdateToPeers(d, ipAddresses);
 			return null;
 		}
-
-//		@Override
-//		protected void onPostExecute(Void empty){
-//			isRunning = false;
-//		}
-
-//		public boolean isRunning(){
-//			return isRunning;
-//		}
-		
 	}
-
-	/**
-	 * Private helper class for managing individual connections.
-	 * Holds a connection open and can send strings through the 
-	 * connection if it has been established.
-	 */
-	private class Connection{
-		Socket socket = null; 
-		PrintStream outStream = null;
-		String ip;
-		boolean valid;
-
-		public Connection(String ip){
-			this.ip = ip;
-			valid=false;
-			Log.v(TAG, "Created Connection object with ip: " + ip);
-		}
-
-		public boolean openConnection(){
-			try{
-				socket = new Socket(ip, 5567);
-				outStream = new PrintStream(socket.getOutputStream());
-				valid = true;
-				return true;
-			}catch(Exception e){
-				Log.w(TAG, "Failed to open connection with error: " + e.toString());
-				valid=false;
-				return false;
-			}
-		}
-
-		public void putString(String s){
-			if (valid && socket != null && outStream != null)
-				outStream.println(s);
-		}
-
-		public void closeConnection(){
-			if (outStream != null)
-				outStream.close();
-			if (socket != null){
-				try{
-					socket.close();
-				}catch(IOException e){
-					Log.w(getClass().getName(), "Could not close socket with error: " + e.toString());
-				}
-			}
-			valid = false;
-		}
-	}
-
-//	private String getMyExternalIp(){
-//		try{
-//			URL url = null;
-//			HttpURLConnection conn = null;
-//
-//			url = new URL("http://api.externalip.net/ip/");
-//			conn = (HttpURLConnection)url.openConnection();
-//
-//			InputStream in = null;
-//			try{
-//				in = new BufferedInputStream(conn.getInputStream());
-//			}catch(IOException e){
-//				e.printStackTrace();
-//				return "";
-//			}
-//			String responseString = convertStreamToString(in);
-//
-//			if (responseString.length() == 0) return "";
-//			conn.disconnect();
-//
-//			return responseString;
-//
-//
-//		}catch(MalformedURLException e){
-//			Log.w("SyncService", "URL no longer valid");
-//			e.printStackTrace();
-//		}catch(IOException e){
-//			Log.w("SyncService", "Connection could not be established.");
-//			e.printStackTrace();
-//		}
-//		return "";
-//	}
-
-    // Helper function for reading input stream
-    // retrieved from http://stackoverflow.com/a/5445161/793208
-    private String convertStreamToString(InputStream is){
-        try{
-            return new java.util.Scanner(is).useDelimiter("\\A").next();
-        }catch(NoSuchElementException e){
-            return "";
-        }
-    }
-    
 }

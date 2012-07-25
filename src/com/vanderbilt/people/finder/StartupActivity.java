@@ -191,6 +191,7 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		
 		protected void onPostExecute(Long l)
 		{
+			Log.v(TAG, "new account stored with key: " + l);
 			UserData.establishId(StartupActivity.this, l);
 			
 			ContentValues cv = new ContentValues();

@@ -1,8 +1,10 @@
 package com.vanderbilt.people.finder;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -21,6 +23,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
@@ -36,6 +39,8 @@ public final class NetworkUtilities
 	private static final String TAG = "NetworkUtilities";
 	
 	private NetworkUtilities() {}
+	
+	private static final int PEER_PORT = 5567;
 	
 	private static final String BASE_URL = "http://vuandroidserver.appspot.com";
 	private static final String DOWNLOAD = "/download";
@@ -55,6 +60,101 @@ public final class NetworkUtilities
         HttpConnectionParams.setSoTimeout(params, 30 * 1000);
         ConnManagerParams.setTimeout(params, 30 * 1000);
         return httpClient;
+	}
+	
+	public static void pushUpdateToPeers(DataModel d, List<String> ipAddresses)
+	{
+		// initialize Connect objects for every IP in the database
+		ArrayList<Connection> mPeers = new ArrayList<Connection>();
+		for (String ip : ipAddresses)
+		{
+			mPeers.add(new Connection(ip));
+		}
+		
+		String delivery = "";
+		try
+		{
+			delivery = d.toJSON().toString();
+		}
+		catch (JSONException e)
+		{
+			Log.e(TAG, e.toString());
+		}
+		
+		for (Connection conn : mPeers)
+		{
+			if (conn.open())
+			{
+				conn.putString(delivery);
+			}
+			conn.close();
+		}
+	}
+	
+	/**
+	 * Private helper class for managing individual connections.
+	 * Holds a connection open and can send strings through the 
+	 * connection if it has been established.
+	 */
+	private static class Connection
+	{
+		private final String ipAddress;
+		private Socket socket; 
+		private PrintStream outStream;
+		private boolean valid;
+
+		public Connection(String ip)
+		{
+			socket = null;
+			outStream = null;
+			ipAddress = ip;
+			valid=false;
+			Log.v(TAG, "Created connection with ip: " + ip);
+		}
+
+		public boolean open()
+		{
+			try
+			{
+				socket = new Socket(ipAddress, PEER_PORT);
+				outStream = new PrintStream(socket.getOutputStream());
+				valid = true;
+				return true;
+			}
+			catch(Exception e)
+			{
+				Log.w(TAG, e.toString());
+				e.printStackTrace();
+				valid=false;
+				return false;
+			}
+		}
+
+		public void putString(String s)
+		{
+			if (valid && socket != null && outStream != null)
+				outStream.println(s);
+		}
+
+		public void close()
+		{
+			if (outStream != null)
+			{
+				outStream.close();
+			}
+			if (socket != null)
+			{
+				try
+				{
+					socket.close();
+				}
+				catch(IOException e)
+				{
+					Log.w(TAG, e.toString());
+				}
+			}
+			valid = false;
+		}
 	}
 	
 	public static String getMyExternalIp()
@@ -168,10 +268,10 @@ public final class NetworkUtilities
 	{
 		HttpClient httpClient = getHttpClient();
 		String urlFull = BASE_URL + UPLOAD;
-		Long returnedSkey = null;
-		
+		Long returnedSkey = Long.valueOf(-1);
+	
 		try
-		{
+		{	
 			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
 			HttpEntity entity = new UrlEncodedFormEntity(params);
