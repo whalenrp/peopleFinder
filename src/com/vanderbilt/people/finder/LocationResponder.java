@@ -1,7 +1,6 @@
 package com.vanderbilt.people.finder;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.NoSuchElementException;
@@ -13,13 +12,10 @@ import com.vanderbilt.people.finder.Provider.Constants;
 
 import android.app.Service;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 
 public class LocationResponder extends Service{
@@ -59,7 +55,8 @@ public class LocationResponder extends Service{
 //			context = c;
 //		}
 
-	    public void run () 
+	    @Override
+		public void run () 
 	    {
 			try 
 			{
