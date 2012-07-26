@@ -16,6 +16,25 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
+/**
+ * Class used for syncing with a central remote server.
+ * The sync adapter is never invoked manually, instead it
+ * is managed by a sync manager, a seperate system service 
+ * that handles all sync adapters on the device. Applications 
+ * can specifiy the periodicity of the sync adapter, request
+ * immediate syncing, or set the sync adapter to sync 
+ * "automatically." However, the sync manager has the final
+ * call, and may delay syncing until a more appropriate time
+ * (if there are other sync adapters already syncing and filling
+ * up bandwidth, for example). 
+ * <p>
+ * Sync adapters are closely tied to accounts and content providers,
+ * and are usually configured through their respective interfaces.
+ * Sync adapters must also supply several configuration details
+ * in the manifest. In this case, the configuration lies in 
+ * res/xml/sync.xml.
+ *
+ */
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
 	private static final String TAG = "SyncAdapter";
@@ -25,6 +44,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		super(context, autoInitialize);
 	}
 
+	/**
+	 * Performs the meat of the syncing operation. User's data 
+	 * (in the case of peer-to-peer, only key and IP address) is 
+	 * packaged and sent to the central remote server. Afterwards, all
+	 * peer IP addresses registered on the server are pulled down
+	 * and stored.
+	 */
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult)
