@@ -45,10 +45,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		
 			// Send data to server, get peer data back
 			Log.v(TAG, "Pushing ip address to server.");
-			long key = NetworkUtilities.pushClientStatus(dataToSend);
+			long key = NetworkUtilities.pushDataToServer(dataToSend);
 			Log.v(TAG, "returned key: " + key);
 			Log.v(TAG, "Downloading peer ip addresses.");
-			List<DataModel> returnedItems = NetworkUtilities.requestIpAddresses(UserData.getId(getContext()));
+			List<DataModel> returnedItems = NetworkUtilities.pullPeerAddresses(UserData.getId(getContext()));
 		
 			for (DataModel d : returnedItems)
 			{

@@ -183,10 +183,10 @@ public class StartupActivity extends AccountAuthenticatorActivity
 		protected Long doInBackground(DataModel... params) 
 		{
 			DataModel d = params[0];
-			externalIp = NetworkUtilities.getMyExternalIp();
+			externalIp = NetworkUtilities.getIp();
 			Log.v(TAG, externalIp);
 			d.setIpAddress(externalIp);
-			return NetworkUtilities.pushClientStatus(d);
+			return NetworkUtilities.pushDataToServer(d);
 		}
 		
 		protected void onPostExecute(Long l)

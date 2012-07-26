@@ -29,7 +29,9 @@ import org.json.JSONObject;
 import android.util.Log;
 
 /**
- * Static class used to interface with the central server.
+ * Static class used to interface with both central and 
+ * peer-to-peer networks. The aim is to isolate all code
+ * relating to network functions, including JSON parsing.
  * 
  * @author lane
  *
@@ -38,19 +40,19 @@ public final class NetworkUtilities
 {
 	private static final String TAG = "NetworkUtilities";
 	
-	private NetworkUtilities() {}
-	
 	private static final int PEER_PORT = 5567;
 	
 	private static final String BASE_URL = "http://vuandroidserver.appspot.com";
-	private static final String DOWNLOAD = "/download";
 	private static final String UPLOAD = "/upload";
 	private static final String REMOVE = "/remove";
+
 	private static final String IP = "/ip";
 	
 	private static final String GET_PARAM_SKEY = "?skey=";
 	private static final String POST_PARAM_JSON_PACKAGE = "json_package";
 	private static final String POST_PARAM_REMOVAL_KEY = "removal_key";
+	
+	private NetworkUtilities() {}
 	
 	private static HttpClient getHttpClient()
 	{
@@ -62,129 +64,49 @@ public final class NetworkUtilities
         return httpClient;
 	}
 	
-	public static void pushUpdateToPeers(DataModel d, List<String> ipAddresses)
-	{
-		// initialize Connect objects for every IP in the database
-		ArrayList<Connection> mPeers = new ArrayList<Connection>();
-		for (String ip : ipAddresses)
-		{
-			mPeers.add(new Connection(ip));
-		}
-		
-		String delivery = "";
-		try
-		{
-			delivery = d.toJSON().toString();
-		}
-		catch (JSONException e)
-		{
-			Log.e(TAG, e.toString());
-		}
-		
-		for (Connection conn : mPeers)
-		{
-			if (conn.open())
-			{
-				conn.putString(delivery);
-			}
-			conn.close();
-		}
-	}
-	
 	/**
-	 * Private helper class for managing individual connections.
-	 * Holds a connection open and can send strings through the 
-	 * connection if it has been established.
+	 * Grabs the IP address of the device that is connectable 
+	 * from the network. May be performed on the main thread.
+	 * 
+	 * @return Either IPv4 or IPv6 address string.
 	 */
-	private static class Connection
-	{
-		private final String ipAddress;
-		private Socket socket; 
-		private PrintStream outStream;
-		private boolean valid;
-
-		public Connection(String ip)
-		{
-			socket = null;
-			outStream = null;
-			ipAddress = ip;
-			valid=false;
-			Log.v(TAG, "Created connection with ip: " + ip);
-		}
-
-		public boolean open()
-		{
-			try
-			{
-				socket = new Socket(ipAddress, PEER_PORT);
-				outStream = new PrintStream(socket.getOutputStream());
-				valid = true;
-				return true;
-			}
-			catch(Exception e)
-			{
-				Log.w(TAG, e.toString());
-				e.printStackTrace();
-				valid=false;
-				return false;
-			}
-		}
-
-		public void putString(String s)
-		{
-			if (valid && socket != null && outStream != null)
-				outStream.println(s);
-		}
-
-		public void close()
-		{
-			if (outStream != null)
-			{
-				outStream.close();
-			}
-			if (socket != null)
-			{
-				try
-				{
-					socket.close();
-				}
-				catch(IOException e)
-				{
-					Log.w(TAG, e.toString());
-				}
-			}
-			valid = false;
-		}
-	}
-	
-	public static String getMyExternalIp()
+	public static String getIp()
 	{
 		try
-        {
+	    {
 			Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-        	while (en.hasMoreElements())
-        	{
-        		NetworkInterface intf = en.nextElement();
-        		Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
-        		while (enumIpAddr.hasMoreElements())
-        		{
-        			InetAddress inetAddress = enumIpAddr.nextElement();
-        			if (!inetAddress.isLoopbackAddress())
-        			{
-        				return inetAddress.getHostAddress().toString();    				
-        			}
-        		}
-        	}
-        }
-        catch (Exception e)
-        {
-        	e.printStackTrace();
-        }
+	    	while (en.hasMoreElements())
+	    	{
+	    		NetworkInterface intf = en.nextElement();
+	    		Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+	    		while (enumIpAddr.hasMoreElements())
+	    		{
+	    			InetAddress inetAddress = enumIpAddr.nextElement();
+	    			if (!inetAddress.isLoopbackAddress())
+	    			{
+	    				return inetAddress.getHostAddress().toString();    				
+	    			}
+	    		}
+	    	}
+	    }
+	    catch (Exception e)
+	    {
+	    	Log.w(TAG, "Error while obtaining IP address.");
+	    	e.printStackTrace();
+	    }
 		
 		return null;
 	}
-	
-	public static List<DataModel> requestIpAddresses(Long key)
+
+	/**
+	 * Pulls peer IP addresses from central server. Must not be 
+	 * performed on the main thread.
+	 * 
+	 * @param key User's identifying key. Used to avoid returning 
+	 * user's own data with peer data.
+	 * @return List containing peer keys and IP addresses. Will never be null.
+	 */
+	public static List<DataModel> pullPeerAddresses(Long key)
 	{
 		String urlFull = BASE_URL + IP;
 		if (key != null)
@@ -222,8 +144,106 @@ public final class NetworkUtilities
 		
 		return objectsReturned;
 	}
+
+	/**
+	 * Pushes supplied data to all given peers. This method will
+	 * give no indication of failure beyond logging exceptions. It
+	 * assumes that all peers are reachable and accepting connections. 
+	 * If either parameter is null, the method will return early. Must
+	 * not be performed on the main thread.
+	 * @param d The data to be sent to peers. Assumes all fields are present and valid.
+	 * @param ipAddresses List of peers as given by their IP addresses. 
+	 * Accepts IPv4 and IPv6 address formats. 
+	 */
+	public static void pushDataToPeers(DataModel d, List<String> ipAddresses)
+	{
+		if (d == null || ipAddresses == null)
+		{
+			Log.w(TAG, "Null parameter(s) passed to pushDataToPeers()");
+			return;
+		}
+			
+		// initialize Connection objects for every IP in the database
+		ArrayList<Connection> mPeers = new ArrayList<Connection>();
+		for (String ip : ipAddresses)
+		{
+			mPeers.add(new Connection(ip));
+		}
+		
+		try
+		{
+			String delivery = d.toJSON().toString();
+			
+			for (Connection conn : mPeers)
+			{
+				if (conn.open())
+				{
+					conn.putString(delivery);
+				}
+				conn.close();
+			}
+		}
+		catch (JSONException e)
+		{
+			Log.e(TAG, e.toString());
+			Log.e(TAG, "Invalid JSON, was not sent to peers.");
+		}
+	}
 	
-	public static boolean requestRemoval(Long key)
+	/**
+	 * Send the client's data to the server database for 
+	 * processing. This method allows either insertion 
+	 * or updating of the client data. In order to update
+	 * the server key of the client must be included in
+	 * the parameter object. Must not be performed on the main thread.
+	 * 
+	 * @param d Data to be sent to the server. In peer-to-peer implementations,
+	 * only an IP address (and key, if updating) is necessary. In a central 
+	 * server model, all data should be included.
+	 * @return The server key established for this client. 
+	 * Will return -1 if the transaction was unsuccessful.
+	 */
+	public static Long pushDataToServer(DataModel d) 
+	{
+		HttpClient httpClient = getHttpClient();
+		String urlFull = BASE_URL + UPLOAD;
+		Long returnedSkey = Long.valueOf(-1);
+	
+		try
+		{	
+			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
+			HttpEntity entity = new UrlEncodedFormEntity(params);
+			
+			final HttpPost httpPost = new HttpPost(urlFull);
+			httpPost.addHeader(entity.getContentType());
+	        httpPost.setEntity(entity);
+	        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+	        String responseBody = httpClient.execute(httpPost, responseHandler);
+			JSONObject o = new JSONObject(responseBody);
+			returnedSkey = o.getLong("skey");
+		}
+		catch (Exception e)
+		{
+			Log.e(TAG, e.toString());
+		}
+		finally
+		{
+			httpClient.getConnectionManager().shutdown();
+		}
+		
+		return returnedSkey;
+	}
+
+	/**
+	 * Attempts to remove the user from the network. If successful,
+	 * the server will no longer list the user's IP address in the 
+	 * directory table. Must not be performed on the main thread.
+	 * 
+	 * @param key User's identification key.
+	 * @return Whether the removal was successful or not. 
+	 */
+	public static boolean requestRemovalFromServer(Long key)
 	{
 		String urlFull = BASE_URL + REMOVE;
 
@@ -255,89 +275,67 @@ public final class NetworkUtilities
 	}
 	
 	/**
-	 * Send the client's data to the server database for 
-	 * processing. This method allows either insertion 
-	 * or updating of the client data. In order to update
-	 * the server key of the client must be included in
-	 * the parameter object. 
-	 * 
-	 * @param d
-	 * @return the server key established for this client
+	 * Private helper class for managing individual connections.
+	 * Holds a connection open and can send strings through the 
+	 * connection if it has been established.
 	 */
-	public static Long pushClientStatus(DataModel d) 
+	private static class Connection
 	{
-		HttpClient httpClient = getHttpClient();
-		String urlFull = BASE_URL + UPLOAD;
-		Long returnedSkey = Long.valueOf(-1);
+		private final String ipAddress;
+		private Socket socket; 
+		private PrintStream outStream;
+		private boolean valid;
 	
-		try
-		{	
-			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
-			HttpEntity entity = new UrlEncodedFormEntity(params);
-			
-			final HttpPost httpPost = new HttpPost(urlFull);
-			httpPost.addHeader(entity.getContentType());
-	        httpPost.setEntity(entity);
-	        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-	        String responseBody = httpClient.execute(httpPost, responseHandler);
-			JSONObject o = new JSONObject(responseBody);
-			returnedSkey = o.getLong("skey");
-		}
-		catch (Exception e)
+		public Connection(String ip)
 		{
-			Log.e(TAG, e.toString());
+			socket = null;
+			outStream = null;
+			ipAddress = ip;
+			valid=false;
+			Log.v(TAG, "Created connection with ip: " + ip);
 		}
-		finally
-		{
-			httpClient.getConnectionManager().shutdown();
-		}
-		
-		return returnedSkey;
-	}
 	
-	/**
-	 * Pulls all peer updates from the server database.
-	 * 
-	 * @param key used to determine which client is 
-	 * requesting data. Since obtaining its own data would be
-	 * redundant, the client's data is not returned. If null, 
-	 * all data is returned, regardless of owner.
-	 * @return
-	 */
-	public static List<DataModel> getPeerUpdates(Long key)
-	{
-		String urlFull = BASE_URL + DOWNLOAD;
-		if (key != null)
-			urlFull += GET_PARAM_SKEY + key;
-		HttpClient httpClient = getHttpClient();
-		List<DataModel> objectsReturned = new ArrayList<DataModel>();
-		try
+		public boolean open()
 		{
-			final HttpGet httpget = new HttpGet(urlFull);
-			Log.v(TAG, "executing request " + httpget.getURI());
-			
-			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			String responseBody = httpClient.execute(httpget, responseHandler);
-			Log.v(TAG, responseBody);
-			JSONArray array = new JSONArray(responseBody);
-			
-			for (int i = 0; i < array.length(); i++)
+			try
 			{
-				DataModel obj = new DataModel(array.getJSONObject(i));
-				objectsReturned.add(obj);
+				socket = new Socket(ipAddress, PEER_PORT);
+				outStream = new PrintStream(socket.getOutputStream());
+				valid = true;
+				return true;
+			}
+			catch(Exception e)
+			{
+				Log.w(TAG, e.toString());
+				valid=false;
+				return false;
 			}
 		}
-		catch (Exception e)
+	
+		public void putString(String s)
 		{
-			
-			e.printStackTrace();
+			if (valid && socket != null && outStream != null)
+				outStream.println(s);
 		}
-		finally
+	
+		public void close()
 		{
-			httpClient.getConnectionManager().shutdown();
+			if (outStream != null)
+			{
+				outStream.close();
+			}
+			if (socket != null)
+			{
+				try
+				{
+					socket.close();
+				}
+				catch(IOException e)
+				{
+					Log.w(TAG, e.toString());
+				}
+			}
+			valid = false;
 		}
-		
-		return objectsReturned;
 	}
 }

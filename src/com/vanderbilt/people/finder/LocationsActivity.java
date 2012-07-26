@@ -104,7 +104,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			else
 			{
 				ContentValues cv = new ContentValues(3);
-				cv.put(Constants.IP, NetworkUtilities.getMyExternalIp());
+				cv.put(Constants.IP, NetworkUtilities.getIp());
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
 				int i = getContentResolver().update(Constants.CONTENT_URI, cv,
@@ -280,7 +280,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			}
 			c.close();
 			
-			NetworkUtilities.pushUpdateToPeers(d, ipAddresses);
+			NetworkUtilities.pushDataToPeers(d, ipAddresses);
 			return null;
 		}
 	}
