@@ -20,6 +20,7 @@ public class Provider extends ContentProvider {
   private static final UriMatcher MATCHER;
 
  
+    /*Constants for the columns in the content provider*/
   public static final class Constants implements BaseColumns {
 
 	public static final String AUTHORITY = "com.vanderbilt.people.finder.Provider";
@@ -46,6 +47,9 @@ public class Provider extends ContentProvider {
 
   private PeopleDB db = null;
   
+    /* Creates the DB inside the content provider
+     * Returns True if it succeded and false otherwise
+    */
   @Override
   public boolean onCreate() 
   {

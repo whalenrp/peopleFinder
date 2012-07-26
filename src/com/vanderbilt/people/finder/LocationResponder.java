@@ -21,10 +21,8 @@ import android.util.Log;
 public class LocationResponder extends Service{
 	
 	private static final String TAG = "LocationResponder";
+        /* This can be any number greater than 1000 and less then 65535*/
 	private static final int PORT = 5567;
-	
-//	private ServerSocket listener = null;
-//	private static String location = "location";
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -38,9 +36,9 @@ public class LocationResponder extends Service{
 	@Override
 	public void onDestroy()
 	{
-		//new LeaveNetworkTask().execute();
 	}
 	
+        /*When the service is started, it starts a new thread.*/
 	@Override
 	public void onStart(Intent intent, int startid) 
 	{
@@ -49,11 +47,15 @@ public class LocationResponder extends Service{
 		t.start();
 	}
 	
+        /*This is a runnable object that will be called in a seperate thread.
+        * This method does the bulk of the work in the class. First it opens
+	* a ServerSocket that listens on a port.  It will block on that port 
+	* until a connections is established.  Once a connection is established
+	* the data from the other phone is interpreted and placed into the 
+	* content provider.
+	*/
 	class Response implements Runnable
 	{
-//		public Response(Context c){
-//			context = c;
-//		}
 
 	    @Override
 		public void run () 
@@ -61,14 +63,11 @@ public class LocationResponder extends Service{
 			try 
 			{
 				ServerSocket listener = new ServerSocket(PORT);
-//				Looper.prepare();
 				
 				while (true)
 				{
 					Socket server = listener.accept();
 					Log.v(TAG, "has accepted connection");
-//					PrintWriter out = new PrintWriter(server.getOutputStream(), true);
-//					DataInputStream in = new DataInputStream (server.getInputStream());
 					
 					String message = convertStreamToString(server.getInputStream());
 					Log.v(TAG, message);
@@ -106,31 +105,7 @@ public class LocationResponder extends Service{
 					}
 					
 					c.close();
-//					String command = in.readLine();
-//					command = command.trim();
-//					String args[] = command.split(" ");
-//					if(args[0].equals("update"))
-//					{
-//						String ip = args[1];
-//						double latitude = Double.parseDouble(args[2]);
-//						double longitude = Double.parseDouble(args[3]);
-					
-//						ContentValues cv = new ContentValues();
-//						cv.put(Constants.IP, ip);
-//						cv.put(Constants.LATITUDE, latitude);
-//						cv.put(Constants.LONGITUDE, longitude);
-//						int i = context.getContentResolver().update(Constants.CONTENT_URI,
-//							cv, 
-//							Constants.IP + "=?",
-//							new String[]{ip});
-//						Log.i("MainActivity", "Updated " + i + " entries.");
-
-//					}
-//					out.close();
-//					in.close();
 					server.close();
-
-//					Looper.loop();
 					Log.d(TAG, "Exited out the loop.");
 				}
 				}
@@ -140,7 +115,7 @@ public class LocationResponder extends Service{
 				e.printStackTrace();
 			}
 	    }
-	    
+	    /*Converts an entire stream into one large string*/
 	    private String convertStreamToString(InputStream is)
 	    {
 	        try{
@@ -150,20 +125,6 @@ public class LocationResponder extends Service{
 	        }
 	    }
 	}
-	
-//	class LeaveNetworkTask extends AsyncTask<Void, Void, Void>
-//	{
-//		@Override
-//		protected Void doInBackground(Void... params) 
-//		{
-//			boolean b = NetworkUtilities.requestRemoval(UserData.getId(LocationResponder.this));
-//			if (!b)
-//				Log.w(TAG, "User could not unregister from server.");
-//			
-//			return null;
-//		}
-//	}
-}
 
 
 

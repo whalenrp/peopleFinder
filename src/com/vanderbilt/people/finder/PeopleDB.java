@@ -17,12 +17,16 @@ public class PeopleDB extends SQLiteOpenHelper{
 
     }
     	
-
+    /*Creates the table with the proper columns.  
+     * These columns should be the variables located in the Constants class
+     * This still works but is improper
+     */
     @Override
     public void onCreate(SQLiteDatabase db)
     {
 	db.execSQL("CREATE TABLE locations (_id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, name TEXT, server_key LONG, ip TEXT, longitude FLOAT, latitude FLOAT);"); 
     }
+    
     
     @Override 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
