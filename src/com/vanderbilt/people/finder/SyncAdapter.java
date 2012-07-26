@@ -60,7 +60,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		{
 			c = provider.query(Constants.CONTENT_URI,
 							   new String[] { Constants.SERVER_KEY, Constants.IP },
-							   Constants.SERVER_KEY+"="+UserData.getId(getContext()), null, null);
+							   Constants.SERVER_KEY+"="+UserData.getKey(getContext()), null, null);
 		
 			DataModel dataToSend = null;
 			if (c.moveToFirst())
@@ -74,7 +74,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 			long key = NetworkUtilities.pushDataToServer(dataToSend);
 			Log.v(TAG, "returned key: " + key);
 			Log.v(TAG, "Downloading peer ip addresses.");
-			List<DataModel> returnedItems = NetworkUtilities.pullPeerAddresses(UserData.getId(getContext()));
+			List<DataModel> returnedItems = NetworkUtilities.pullPeerAddresses(UserData.getKey(getContext()));
 		
 			for (DataModel d : returnedItems)
 			{

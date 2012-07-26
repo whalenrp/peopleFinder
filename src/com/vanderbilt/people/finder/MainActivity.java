@@ -57,7 +57,7 @@ public class MainActivity extends FragmentActivity
 
 		Cursor c = getContentResolver().query(Constants.CONTENT_URI,
 				  new String[] { Constants.NAME, Constants.MESSAGE },
-				  Constants.SERVER_KEY+"="+UserData.getId(MainActivity.this), null, null);
+				  Constants.SERVER_KEY+"="+UserData.getKey(MainActivity.this), null, null);
     	if (c.moveToFirst())
     	{
     		nameLabel.setText(c.getString(c.getColumnIndex(Constants.NAME)));
@@ -81,7 +81,7 @@ public class MainActivity extends FragmentActivity
 			ContentValues cv = new ContentValues(1);
 			cv.put(Constants.MESSAGE, status);
 			int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-					Constants.SERVER_KEY+"="+UserData.getId(this), null);
+					Constants.SERVER_KEY+"="+UserData.getKey(this), null);
 			Log.v(TAG, "Updated status for " + i + " item(s).");
 			statusLabelText.setText(status);
 			statusEditText.setText("");
@@ -93,7 +93,7 @@ public class MainActivity extends FragmentActivity
 		return new CursorLoader(this, 
 			Constants.CONTENT_URI,// URI
 			PROJECTION,// needed fields: _id, username, and IP
-			Constants.SERVER_KEY+"!="+UserData.getId(this), // Selection : get all peers
+			Constants.SERVER_KEY+"!="+UserData.getKey(this), // Selection : get all peers
 			null, // SelectionArgs
 			Constants.DEFAULT_SORT_ORDER); // ORDER BY 
 	}

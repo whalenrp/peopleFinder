@@ -54,7 +54,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
 			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
-			Constants.SERVER_KEY+"!="+UserData.getId(this), null, null);
+			Constants.SERVER_KEY+"!="+UserData.getKey(this), null, null);
 
 		initMap(myInfo);
 		myInfo.close();
@@ -108,7 +108,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
 				int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-						Constants.SERVER_KEY+"="+UserData.getId(this), null);
+						Constants.SERVER_KEY+"="+UserData.getKey(this), null);
 				Log.v(TAG, i + " item(s) updated.");
 				new SendPositionTask().execute();
 			}
@@ -251,7 +251,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		@Override
 		protected Void doInBackground(Void... items)
 		{
-			long id = UserData.getId(LocationsActivity.this);
+			long id = UserData.getKey(LocationsActivity.this);
 			
 			// Package user info to send via JSON to peers
 			Cursor userData = getContentResolver().query(Constants.CONTENT_URI, null,

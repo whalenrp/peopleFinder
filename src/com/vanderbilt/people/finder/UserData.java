@@ -5,14 +5,16 @@ import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+/**
+ * Wrapper class for accessing user settings data.
+ */
 public final class UserData 
 {
 	private static final String USER_DATA = "UserData";
-	private static final String USER_ID = "user_server_key";
+	private static final String USER_KEY = "user_server_key";
 	private static final String ACCOUNT_NAME = "account_name";
 	private static final String NEEDS_INIT = "needs_init";
 	
-	// Non-instantiable, it's a singleton.
 	private UserData() {}
 	
 	public static boolean needsInitialization(Context context)
@@ -43,6 +45,11 @@ public final class UserData
 		}
 	}
 	
+	/**
+	 * 
+	 * @param context
+	 * @return
+	 */
 	public static Account getAccount(Context context)
 	{ 
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
@@ -57,35 +64,36 @@ public final class UserData
 	}
 
 	/**
-	 * Establishes the id for the app user for easy access during Content
-	 * Provider operations. If the id has already been set, it will ignore
-	 * this call. 
+	 * Establishes the key for the app user for easy access during content
+	 * provider operations. The key will not be set if it has already been
+	 * established once.
 	 * 
 	 * @param context
-	 * @param id
+	 * @param key Returned from the server after registering the user.
 	 */
-	public static void establishId(Context context, long id)
+	public static void establishKey(Context context, long key)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
-		if (!settings.contains(USER_ID))
+		if (!settings.contains(USER_KEY))
 		{
 			SharedPreferences.Editor editor = settings.edit();
-			editor.putLong(USER_ID, id);
+			editor.putLong(USER_KEY, key);
 			editor.commit();
 		}
 	}
 	
 	/**
-	 * Returns the established id for the user. If an id has not been set, will return
-	 * the value -1. The id should ALWAYS be established during primary initialization 
+	 * Returns the established key for the user. If a key has not been set, will return
+	 * the value -1. The key should ALWAYS be established during primary initialization 
 	 * of the app's first start-up.
 	 * 
-	 * @param context
-	 * @return
+	 * @param context 
+	 * @return The key, used for identification with the server, for the user. If not set, 
+	 * will return -1. 
 	 */
-	public static long getId(Context context)
+	public static long getKey(Context context)
 	{ 
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
-		return settings.getLong(USER_ID, -1);
+		return settings.getLong(USER_KEY, -1);
 	}
 }
