@@ -59,48 +59,7 @@
         android:ems="10"
         android:inputType="textPersonName" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dip"
-            android:layout_marginRight="3dip"
-            android:text="Lat:"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/lat_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dip"
-            android:text="(latitude here)"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="italic" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dip"
-            android:layout_marginLeft="15dip"
-            android:layout_marginRight="3dip"
-            android:text="Long:"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/long_label"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dip"
-            android:layout_weight="30"
-            android:text="(longitude here)"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="italic" />
-
-    </LinearLayout>
+    
 
     <TextView
         android:id="@+id/textView2"

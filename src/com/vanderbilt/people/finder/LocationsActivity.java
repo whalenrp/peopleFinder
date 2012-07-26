@@ -1,13 +1,7 @@
 package com.vanderbilt.people.finder;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 import android.app.AlertDialog;
 import android.content.ContentResolver;
@@ -117,7 +111,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 	/**
 	 * Refreshes the list of peers by attempting to sync with the 
-	 * directory server. Also updates positions on map.
+	 * directory server.
 	 */
 	public void refreshPeers(View view)
 	{
@@ -198,7 +192,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
 		mapView.getOverlays().add(new SiteOverlay(marker, c));
 		c.close();
-		// Add location marker
 	}
 
 
@@ -235,10 +228,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	protected boolean isRouteDisplayed(){
 		return false;
 	}
-
-	///////////////////////////////////////////////////////
-	///   Background Networking Logic
-	///////////////////////////////////////////////////////
 
 	/**
 	 * This implementation of AsyncTask handles the transmission

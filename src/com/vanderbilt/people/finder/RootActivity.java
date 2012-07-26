@@ -1,13 +1,17 @@
 package com.vanderbilt.people.finder;
 
-import com.vanderbilt.people.finder.Provider.Constants;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 
+/**
+ * The first activity launched when the app begins. Having 
+ * no interface, it acts as a 'trampoline,' sending the user 
+ * to the initialization activity on the first launch, or to 
+ * the usual main activity otherwise. 
+ *
+ */
 public class RootActivity extends Activity 
 {
 	private static final String TAG = "RootActivity";
@@ -19,33 +23,34 @@ public class RootActivity extends Activity
 		
 	    if (UserData.needsInitialization(getApplicationContext()))
 	    {
-//	    	Intent i = new Intent(Settings.ACTION_ADD_ACCOUNT);
-//	    	i.putExtra(Settings.EXTRA_AUTHORITIES, new String[] { Constants.AUTHORITY });
-	    	Intent i = new Intent(RootActivity.this, StartupActivity.class);
 	    	Log.v(TAG, "launching startup activity");
-	    	Log.v(TAG, i.toString());
+	    	Intent i = new Intent(RootActivity.this, StartupActivity.class);
+	    	
+	    	// Allow the use of a callback when started activity finishes.
 	    	startActivityForResult(i, INIT_TAG);
 	    }
 	    else
 	    {
-	    	Log.v(TAG, "starting MainActivity");
+	    	Log.v(TAG, "starting main activity");
 	    	startActivity(new Intent(this, MainActivity.class));
 	    	finish();
 	    }
 	}
 	
+	/**
+	 * When the startup activity finishes, it sends an intent back to its
+	 * caller, this class. This permits a callback mechanism, allowing the
+	 * class to perform further action as a result of the finished startup. 
+	 * In this case, if the startup activity finishes successfully, the class
+	 * will then start the main activity and call finish on itself.
+	 */
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-    	if (requestCode == INIT_TAG)
+    	if (requestCode == INIT_TAG && resultCode == RESULT_OK)
     	{
-    		if (resultCode == RESULT_OK)
-    		{
-    			Log.v(TAG, "starting MainActivity");
-    			startActivity(new Intent(this, MainActivity.class));
-    			finish();
-    		}
+    		Log.v(TAG, "starting main activity");
+    		startActivity(new Intent(this, MainActivity.class));
+    		finish();
     	}
-    	
-//    	Log.e(TAG, "Main activity couldn't be started!");
     }
 }

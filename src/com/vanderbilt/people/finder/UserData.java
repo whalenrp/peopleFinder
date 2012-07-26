@@ -17,12 +17,23 @@ public final class UserData
 	
 	private UserData() {}
 	
+	/**
+	 * Returns whether or not the app needs to be initialized. 
+	 * 
+	 * @param context
+	 * @return 
+	 */
 	public static boolean needsInitialization(Context context)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
 		return settings.getBoolean(NEEDS_INIT, true);
 	}
 	
+	/**
+	 * Set whether or not the app has performed first-run initialization.
+	 * 
+	 * @param context
+	 */
 	public static void establishInitialization(Context context)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
@@ -34,6 +45,14 @@ public final class UserData
 		}
 	}
 	
+	/**
+	 * Stores information pertaining to the Account associated 
+	 * with the user. The account is necessary for syncing, and
+	 * is created during the first-run initialization of the app.
+	 * 
+	 * @param context
+	 * @param account Account created for the user.
+	 */
 	public static void establishAccount(Context context, Account account)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
@@ -46,9 +65,13 @@ public final class UserData
 	}
 	
 	/**
+	 * Returns the established account for the user. An account is 
+	 * necessary for syncing with the central remote server via
+	 * the sync adapter. Will return null if the account doesn't 
+	 * exist.
 	 * 
 	 * @param context
-	 * @return
+	 * @return Account object for the user's registered account.
 	 */
 	public static Account getAccount(Context context)
 	{ 
