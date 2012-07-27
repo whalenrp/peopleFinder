@@ -5,6 +5,13 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+/**
+ * Spawns the specific AccountAuthenticator. This service is
+ * instantiated when the user attempts to add a new account 
+ * in Settings. 
+ * <p>
+ * Additional required configuration is found in res/xml/auth.xml
+ */
 public class AuthenticationService extends Service 
 {
 	private static final String TAG = "AuthenticationService";

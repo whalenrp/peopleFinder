@@ -10,6 +10,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+/**
+ * This class handles the addition and managing of the
+ * accounts for this app (specifically, the account type
+ * specified in AccountConstants). 
+ * <p>
+ * It should be noted that as of this time, there exists 
+ * incomplete support for interacting with the user's 
+ * account in the Settings app. In fact, there is 
+ * currently no way to add an additional account (which
+ * would be unnecessary unless the original was first 
+ * removed). The user is able, however, to turn on/off 
+ * the syncing service.
+ */
 public class Authenticator extends AbstractAccountAuthenticator 
 {
 	private static final String TAG = "Authenticator";
@@ -21,11 +34,17 @@ public class Authenticator extends AbstractAccountAuthenticator
 		_context = context;
 	}
 	
+	/*
+	 * Specifies functionality for adding an account. Currently, spawns the
+	 * StartupActivity class, which will crash Settings since it was not
+	 * designed to be invoked outside of the application's context. 
+	 */
 	@Override
 	public Bundle addAccount(AccountAuthenticatorResponse response, String accountType,
 			String authTokenType, String[] requiredFeatures, Bundle options)
 			throws NetworkErrorException 
 	{
+		Log.e(TAG, "Settings will crash!");
 		final Intent intent = new Intent(_context, StartupActivity.class);
 		intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 		final Bundle bundle = new Bundle();

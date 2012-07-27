@@ -37,7 +37,7 @@ public class RootActivity extends Activity
 	    }
 	}
 	
-	/**
+	/*
 	 * When the startup activity finishes, it sends an intent back to its
 	 * caller, this class. This permits a callback mechanism, allowing the
 	 * class to perform further action as a result of the finished startup. 

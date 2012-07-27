@@ -17,6 +17,20 @@ import android.widget.TextView;
 
 import com.vanderbilt.people.finder.Provider.Constants;
 
+/**
+ * Main activity for the app. This activity is the default 
+ * starting point after a user has registered. It contains 
+ * a list of peer IP addresses, and a method to change the
+ * user's status. Also, a button is present to send the user
+ * to the map activity.
+ * 
+ * All content is loaded from the content provider. The 
+ * activity makes use of a Loader to automatically refresh
+ * the list of peers whenever the content provider's data
+ * is updated. This usually occurs when a syncing action
+ * is performed in the background by the Sync Manager.
+ *
+ */
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
@@ -42,19 +56,16 @@ public class MainActivity extends FragmentActivity
         nameLabel = (TextView)findViewById(R.id.name_label);
         statusEditText = (EditText)findViewById(R.id.edit_text_status);
         statusLabelText = (TextView)findViewById(R.id.status_text);
-        
 		mList = (ListView)findViewById(R.id.list);
 		
 		// Set up Adapter
-//		mAdapter = new SimpleCursorAdapter(this, 
-//			android.R.layout.simple_list_item_2, null, 
-//			new String[] {Constants.NAME, Constants.IP}, 
-//			new int[] {android.R.id.text1, android.R.id.text2}, 0);
 		mAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null,
 					   new String[] { Constants.IP }, new int[] { android.R.id.text1 }, 0);
 		mList.setAdapter(mAdapter);
 		
 
+		// Pulls user information from the content provider to populate the
+		// various views of the activity. 
 		Cursor c = getContentResolver().query(Constants.CONTENT_URI,
 				  new String[] { Constants.NAME, Constants.MESSAGE },
 				  Constants.SERVER_KEY+"="+UserData.getKey(MainActivity.this), null, null);
@@ -69,10 +80,12 @@ public class MainActivity extends FragmentActivity
     
 	// Called when the button at the bottom of the screen is clicked
 	public void launchMap(View view){
-		startActivity( new Intent(this, LocationsActivity.class) );
+		startActivity(new Intent(this, LocationsActivity.class) );
 	}
 	
-	// Called when button next to status view is pressed.
+	// Called when button next to status view is pressed. Updates
+	// status column for user in the content provider, then updates
+	// the UI.
 	public void submitStatus(View view)
 	{
 		String status = statusEditText.getText().toString();
@@ -89,13 +102,15 @@ public class MainActivity extends FragmentActivity
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args){
-		return new CursorLoader(this, 
-			Constants.CONTENT_URI,// URI
-			PROJECTION,// needed fields: _id, username, and IP
-			Constants.SERVER_KEY+"!="+UserData.getKey(this), // Selection : get all peers
-			null, // SelectionArgs
-			Constants.DEFAULT_SORT_ORDER); // ORDER BY 
+	public Loader<Cursor> onCreateLoader(int id, Bundle args)
+	{
+		// Loader will pull all rows from content provider besides the 
+		// user's own data. From these rows, only the _id and IP address
+		// columns will be returned. The _id column is used internally
+		// by ListAdapters to manage their data. 
+		return new CursorLoader(this, Constants.CONTENT_URI, PROJECTION, 
+							    Constants.SERVER_KEY+"!="+UserData.getKey(this),
+							    null, Constants.DEFAULT_SORT_ORDER); 
 	}
 
 	@Override

@@ -32,9 +32,6 @@ import android.util.Log;
  * Static class used to interface with both central and 
  * peer-to-peer networks. The aim is to isolate all code
  * relating to network functions, including JSON parsing.
- * 
- * @author lane
- *
  */
 public final class NetworkUtilities 
 {

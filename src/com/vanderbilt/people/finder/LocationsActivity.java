@@ -232,8 +232,6 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	/**
 	 * This implementation of AsyncTask handles the transmission
 	 * of the best current position to all known peers.
-	 * If no last known position has been specified, it will prompt the user
-	 * to enable GPS to get a fix on position.
 	 */
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>
 	{

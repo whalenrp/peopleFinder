@@ -4,7 +4,7 @@ public final class AccountConstants
 {
 	
 	/**
-     * Account type string.
+     * Unique Account type identifier
      */
     public static final String ACCOUNT_TYPE = "com.vanderbilt.people.finder.account";
 

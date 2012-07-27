@@ -23,6 +23,14 @@ public class Provider extends ContentProvider {
     /*Constants for the columns in the content provider*/
   public static final class Constants implements BaseColumns {
 
+	/*
+	 * Note: This list of columns was organically grown through
+	 * the iterations of this project. As it turns out, the
+	 * server_key field is monumentally important to the functionality
+	 * of the app, while the _id field is barely ever used. In a 
+	 * future iteration, server_key could replace _id as the unique
+	 * primary key to make the database more simple.
+	 */
 	public static final String AUTHORITY = "com.vanderbilt.people.finder.Provider";
     public static final Uri CONTENT_URI=
         Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
