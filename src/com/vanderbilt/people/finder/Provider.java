@@ -13,7 +13,9 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 
 
-public class Provider extends ContentProvider {
+public class Provider extends ContentProvider
+{
+	
   private static final String TABLE="locations";
   private static final int LOCATIONS = 1;
   private static final int LOCATION_ID = 2;
@@ -21,36 +23,29 @@ public class Provider extends ContentProvider {
 
  
     /*Constants for the columns in the content provider*/
-  public static final class Constants implements BaseColumns {
+  public static final class Constants implements BaseColumns
+  {
 
-	/*
-	 * Note: This list of columns was organically grown through
-	 * the iterations of this project. As it turns out, the
-	 * server_key field is monumentally important to the functionality
-	 * of the app, while the _id field is barely ever used. In a 
-	 * future iteration, server_key could replace _id as the unique
-	 * primary key to make the database more simple.
-	 */
 	public static final String AUTHORITY = "com.vanderbilt.people.finder.Provider";
-    public static final Uri CONTENT_URI=
-        Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
-    static final String MESSAGE = "message";
-    static final String NAME = "name";
-    static final String ID = "_id";
-    static final String SERVER_KEY = "server_key";
-    static final String IP = "ip";
+    public static final Uri CONTENT_URI = Uri.parse("content://com.vanderbilt.people.finder.Provider/locations");
+    
+    public static final String KEY = "_id";
+    public static final String NAME = "name";
+    public static final String STATUS = "status";
+    public static final String ADDRESS = "ip";
+    public static final String LONGITUDE = "longitude";
+    public static final String LATITUDE = "latitude";
+    public static final String CONN_TYPE = "connectionType";
+    
     public static final String TITLE="title";
-    static final String LONGITUDE = "longitude";
-    static final String LATITUDE = "latitude";
 	public static final String DEFAULT_SORT_ORDER = NAME;
   }
 
-  static{
+  static
+  {
 		MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-		MATCHER.addURI("com.vanderbilt.people.finder.Provider", 
-			"locations", LOCATIONS);
-		MATCHER.addURI("com.vanderbilt.people.finder.Provider", 
-			"locations/#", LOCATION_ID);
+		MATCHER.addURI("com.vanderbilt.people.finder.Provider", "locations", LOCATIONS);
+		MATCHER.addURI("com.vanderbilt.people.finder.Provider", "locations/#", LOCATION_ID);
   }
 
   private PeopleDB db = null;

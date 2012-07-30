@@ -14,8 +14,24 @@ public final class UserData
 	private static final String USER_KEY = "user_server_key";
 	private static final String ACCOUNT_NAME = "account_name";
 	private static final String NEEDS_INIT = "needs_init";
+	private static final String CONNECTION_TYPE = "connection_type";
 	
 	private UserData() {}
+	
+	public static void setConnectionType(Context context, ConnectionType cType)
+	{
+		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(CONNECTION_TYPE, cType.name());
+		editor.commit();
+	}
+	
+	public static ConnectionType getConnectionType(Context context)
+	{
+		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
+		return ConnectionType.getConnectionType(
+			   settings.getString(CONNECTION_TYPE, ConnectionType.CLIENT_SERVER.name()));
+	}
 	
 	/**
 	 * Returns whether or not the app needs to be initialized. 

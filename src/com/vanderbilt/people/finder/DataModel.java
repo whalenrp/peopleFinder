@@ -9,102 +9,83 @@ import android.content.ContentValues;
 
 public final class DataModel 
 {
-	private final Long key;
+	public static final String KEY = "key";
+	public static final String IP = "ip";
+	public static final String LAT = "lat";
+	public static final String LONG = "long";
+	public static final String STATUS = "status";
+	public static final String NAME = "name";
+	public static final String REMOVED = "removed";
+	public static final String CONN_TYPE = "conn_type";
+	
+	private Long key;
 	private String ipAddress;
 	private double latitude;
 	private double longitude;
 	private String status;
 	private String name;
 	private final boolean markedRemoved;
+	private ConnectionType connectionType;
 	
-	/**
-	 * Simple default constructor. Used for composing
-	 * data items to be sent for initial insertion to 
-	 * the server database. 
-	 */
 	public DataModel()
 	{
-		key = null;
 		markedRemoved = false;
 	}
 	
-	/**
-	 * Alternative constructor used for composing data 
-	 * items to be sent to the server database for 
-	 * updating.
-	 * @param key only use preexisting keys returned from the server
-	 */
-	public DataModel(Long skey)
-	{
-		key = skey;
-		markedRemoved = false;
-	}
-	
-	public DataModel(Long skey, String ipAddr)
-	{
-		key = skey;
-		ipAddress = ipAddr;
-		markedRemoved = false;
-	}
-	
-	/**
-	 * Constructor expects the following keys from the parameter:
-	 * skey, ip, lat, long, status, name. Will throw if one is 
-	 * missing.
-	 * 
-	 * @param o 
-	 * @throws JSONException
-	 */
 	public DataModel(JSONObject o) throws JSONException
 	{
-		key = o.getLong("skey");
-		ipAddress = o.getString("ip");
-		latitude = o.getDouble("lat");
-		longitude = o.getDouble("long");
-		status = o.getString("status");
-		name = o.getString("name");
-		markedRemoved = o.getBoolean("removed");
+		// Required fields
+		key = o.getLong(KEY);
+		ipAddress = o.getString(IP);
+		markedRemoved = o.getBoolean(REMOVED);
+		connectionType = ConnectionType.getConnectionType(o.getString(CONN_TYPE));
+		
+		// Optional
+		if (o.has(LAT))
+			latitude = o.getDouble(LAT);
+		if (o.has(LONG))
+			longitude = o.getDouble(LONG);
+		if (o.has(STATUS))
+			status = o.getString(STATUS);
+		if (o.has(NAME))
+			name = o.getString(NAME);
 	}
 	
-	/**
-	 * Packages data into a JSONObject. The following
-	 * keys are required: lat, long, status, name. Both
-	 * skey and ip are optional depending on the use case.
-	 * 
-	 * @return
-	 * @throws JSONException
-	 */
 	public JSONObject toJSON() throws JSONException
 	{
 		JSONObject o = new JSONObject();
+		
 		if (getKey() != null)
-			o.put("skey", key);
-		if (getIpAddress() != null)
-			o.put("ip", ipAddress);
-		o.put("lat", latitude);
-		o.put("long", longitude);
-		o.put("status", status);
-		o.put("name", name);
-		o.put("removed", markedRemoved);
+			o.put(KEY, key);
+		o.put(IP, ipAddress);
+		o.put(LAT, latitude);
+		o.put(LONG, longitude);
+		o.put(STATUS, status);
+		o.put(NAME, name);
+		o.put(REMOVED, markedRemoved);
+		o.put(CONN_TYPE, connectionType.name());
+		
 		return o;
 	}
 	
-	/**
-	 * Returns the full data model as a Content
-	 * Values object for easier interfacing with 
-	 * content provider services.
-	 * 
-	 * @return object containing all keys
-	 */
 	public ContentValues toContentValues()
 	{
 		ContentValues cv = new ContentValues();
-		cv.put(Constants.SERVER_KEY, key);
-		cv.put(Constants.NAME, name);
-		cv.put(Constants.IP, ipAddress);
-		cv.put(Constants.LATITUDE, latitude);
-		cv.put(Constants.LONGITUDE, longitude);
-		cv.put(Constants.MESSAGE, status);
+		if (key != null)
+			cv.put(Constants.KEY, key);
+		if (name != null)
+			cv.put(Constants.NAME, name);
+		if (ipAddress != null)
+			cv.put(Constants.ADDRESS, ipAddress);
+		if (status != null)
+			cv.put(Constants.STATUS, status);
+		if (latitude != 0.0d)
+			cv.put(Constants.LATITUDE, latitude);
+		if (longitude != 0.0d)
+			cv.put(Constants.LONGITUDE, longitude);
+		if (connectionType != null)
+			cv.put(Constants.CONN_TYPE, connectionType.name());
+		
 		return cv;
 	}
 	
@@ -136,6 +117,9 @@ public final class DataModel
 	public void setName(String name) {
 		this.name = name;
 	}
+	public void setKey(Long key){
+		this.key = key;
+	}
 	public Long getKey() {
 		return key;
 	}
@@ -144,6 +128,14 @@ public final class DataModel
 	}
 	public void setIpAddress(String ipAddress){
 		this.ipAddress = ipAddress;
+	}
+
+	public ConnectionType getConnectionType() {
+		return connectionType;
+	}
+
+	public void setConnectionType(ConnectionType connectionType) {
+		this.connectionType = connectionType;
 	}
 
 }

@@ -82,8 +82,8 @@ public class LocationResponder extends Service{
 					}
 					
 					Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-	   						new String[] { Constants.SERVER_KEY },
-	   						Constants.SERVER_KEY+"="+d.getKey(), null, null);
+	   						new String[] { Constants.KEY },
+	   						Constants.KEY+"="+d.getKey(), null, null);
 
 					ContentValues cv = d.toContentValues();
 					if (c.getCount() == 0)
@@ -94,13 +94,13 @@ public class LocationResponder extends Service{
 					else if (d.isMarkedRemoved())
 					{
 					int i = getContentResolver().delete(Constants.CONTENT_URI,
-										Constants.SERVER_KEY+"="+d.getKey(), null);
+										Constants.KEY+"="+d.getKey(), null);
 					Log.v(TAG, "Deleted " + i + "item(s).");
 					}
 					else
 					{
 					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-										Constants.SERVER_KEY+"="+d.getKey(), null);
+										Constants.KEY+"="+d.getKey(), null);
 					Log.v(TAG, "Updated " + i + "item(s).");
 					}
 					

@@ -20,6 +20,7 @@ import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
@@ -40,14 +41,18 @@ public final class NetworkUtilities
 	private static final int PEER_PORT = 5567;
 	
 	private static final String BASE_URL = "http://vuandroidserver.appspot.com";
+	private static final String DOWNLOAD = "/download";
 	private static final String UPLOAD = "/upload";
 	private static final String REMOVE = "/remove";
 
 	private static final String IP = "/ip";
 	
-	private static final String GET_PARAM_SKEY = "?skey=";
+	private static final String GET_PARAM_SKEY = DataModel.KEY;
+	private static final String GET_PARAM_CONN_TYPE = DataModel.CONN_TYPE;
+	
 	private static final String POST_PARAM_JSON_PACKAGE = "json_package";
 	private static final String POST_PARAM_REMOVAL_KEY = "removal_key";
+	
 	
 	private NetworkUtilities() {}
 	
@@ -123,9 +128,10 @@ public final class NetworkUtilities
 			for (int i = 0; i < array.length(); i++)
 			{
 				JSONObject o = array.getJSONObject(i);
-				Long skey = o.getLong("skey");
-				String ipAddr = o.getString("ip");
-				DataModel dataModel = new DataModel(skey, ipAddr);
+				DataModel dataModel = new DataModel();
+				dataModel.setKey(o.getLong(DataModel.KEY));
+				dataModel.setIpAddress(o.getString(DataModel.IP));
+				
 				objectsReturned.add(dataModel);
 			}
 		}
@@ -139,6 +145,49 @@ public final class NetworkUtilities
 			httpClient.getConnectionManager().shutdown();
 		}
 		
+		return objectsReturned;
+	}
+	
+	/**
+	 * Pulls all peer updates from the server database.
+	 * 
+	 * @param key used to determine which client is 
+	 * requesting data. Since obtaining its own data would be
+	 * redundant, the client's data is not returned. If null, 
+	 * all data is returned, regardless of owner.
+	 * @return
+	 */
+	public static List<DataModel> pullPeerData(Long key, ConnectionType ct)
+	{
+		String urlFull = BASE_URL + DOWNLOAD;
+		urlFull += "?" + GET_PARAM_SKEY + "=" + key + "&" + GET_PARAM_CONN_TYPE + "=" + ct.name();
+		HttpClient httpClient = getHttpClient();
+		List<DataModel> objectsReturned = new ArrayList<DataModel>();
+		try
+		{
+			final HttpGet httpget = new HttpGet(urlFull);
+			Log.i(TAG, "executing request " + httpget.getURI());
+
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			String responseBody = httpClient.execute(httpget, responseHandler);
+			Log.d(TAG, responseBody);
+			JSONArray array = new JSONArray(responseBody);
+
+			for (int i = 0; i < array.length(); i++)
+			{
+				DataModel obj = new DataModel(array.getJSONObject(i));
+				objectsReturned.add(obj);
+			}
+		}
+		catch (Exception e)
+		{
+			Log.w(TAG, e.toString());
+		}
+		finally
+		{
+			httpClient.getConnectionManager().shutdown();
+		}
+
 		return objectsReturned;
 	}
 
@@ -200,16 +249,32 @@ public final class NetworkUtilities
 	 * @return The server key established for this client. 
 	 * Will return -1 if the transaction was unsuccessful.
 	 */
-	public static Long pushDataToServer(DataModel d) 
+	public static Long pushDataToServer(DataModel d, ConnectionType ct) 
 	{
 		HttpClient httpClient = getHttpClient();
 		String urlFull = BASE_URL + UPLOAD;
 		Long returnedSkey = Long.valueOf(-1);
-	
 		try
 		{	
+			String paramString = "";
+			if (ct == ConnectionType.PEER_TO_PEER)
+			{
+				JSONObject tmp = new JSONObject();
+				if (d.getKey() != null)
+				{
+					tmp.put(DataModel.KEY, d.getKey());
+				}
+				tmp.put(DataModel.IP, d.getIpAddress());
+				tmp.put(DataModel.REMOVED, d.isMarkedRemoved());
+				tmp.put(DataModel.CONN_TYPE, d.getConnectionType());
+				paramString = tmp.toString();
+			}
+			else
+			{
+				paramString = d.toJSON().toString();
+			}
 			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, d.toJSON().toString()));
+			params.add(new BasicNameValuePair(POST_PARAM_JSON_PACKAGE, paramString));
 			HttpEntity entity = new UrlEncodedFormEntity(params);
 			
 			final HttpPost httpPost = new HttpPost(urlFull);
@@ -218,7 +283,7 @@ public final class NetworkUtilities
 	        ResponseHandler<String> responseHandler = new BasicResponseHandler();
 	        String responseBody = httpClient.execute(httpPost, responseHandler);
 			JSONObject o = new JSONObject(responseBody);
-			returnedSkey = o.getLong("skey");
+			returnedSkey = o.getLong(DataModel.KEY);
 		}
 		catch (Exception e)
 		{

@@ -34,7 +34,7 @@ import com.vanderbilt.people.finder.Provider.Constants;
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
-	private static final String[] PROJECTION = new String[] { Constants.ID, Constants.IP };
+	private static final String[] PROJECTION = new String[] { Constants.KEY, Constants.ADDRESS };
 	private static final String TAG = "MainActivity";
 	
 	private SimpleCursorAdapter mAdapter;
@@ -50,8 +50,11 @@ public class MainActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        Log.v(TAG, "Starting LocationResponder service");
-        startService(new Intent(this, LocationResponder.class));
+        if (UserData.getConnectionType(this) != ConnectionType.CLIENT_SERVER)
+        {
+        	Log.v(TAG, "Starting LocationResponder service");
+        	startService(new Intent(this, LocationResponder.class));
+        }
         
         nameLabel = (TextView)findViewById(R.id.name_label);
         statusEditText = (EditText)findViewById(R.id.edit_text_status);
@@ -60,27 +63,28 @@ public class MainActivity extends FragmentActivity
 		
 		// Set up Adapter
 		mAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null,
-					   new String[] { Constants.IP }, new int[] { android.R.id.text1 }, 0);
+					   new String[] { Constants.ADDRESS }, new int[] { android.R.id.text1 }, 0);
 		mList.setAdapter(mAdapter);
 		
 
 		// Pulls user information from the content provider to populate the
 		// various views of the activity. 
 		Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-				  new String[] { Constants.NAME, Constants.MESSAGE },
-				  Constants.SERVER_KEY+"="+UserData.getKey(MainActivity.this), null, null);
+				  new String[] { Constants.NAME, Constants.STATUS },
+				  Constants.KEY+"="+UserData.getKey(MainActivity.this), null, null);
     	if (c.moveToFirst())
     	{
     		nameLabel.setText(c.getString(c.getColumnIndex(Constants.NAME)));
-    		statusLabelText.setText(c.getString(c.getColumnIndex(Constants.MESSAGE)));
+    		statusLabelText.setText(c.getString(c.getColumnIndex(Constants.STATUS)));
     	}
 		c.close();		
 		getSupportLoaderManager().initLoader(0, null, this);
     }
     
 	// Called when the button at the bottom of the screen is clicked
-	public void launchMap(View view){
-		startActivity(new Intent(this, LocationsActivity.class) );
+	public void launchMap(View view)
+	{
+		startActivity(new Intent(this, LocationsActivity.class));
 	}
 	
 	// Called when button next to status view is pressed. Updates
@@ -92,9 +96,9 @@ public class MainActivity extends FragmentActivity
 		if (!status.equals(""))
 		{
 			ContentValues cv = new ContentValues(1);
-			cv.put(Constants.MESSAGE, status);
+			cv.put(Constants.STATUS, status);
 			int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-					Constants.SERVER_KEY+"="+UserData.getKey(this), null);
+					Constants.KEY+"="+UserData.getKey(this), null);
 			Log.v(TAG, "Updated status for " + i + " item(s).");
 			statusLabelText.setText(status);
 			statusEditText.setText("");
@@ -109,7 +113,7 @@ public class MainActivity extends FragmentActivity
 		// columns will be returned. The _id column is used internally
 		// by ListAdapters to manage their data. 
 		return new CursorLoader(this, Constants.CONTENT_URI, PROJECTION, 
-							    Constants.SERVER_KEY+"!="+UserData.getKey(this),
+							    Constants.KEY+"!="+UserData.getKey(this),
 							    null, Constants.DEFAULT_SORT_ORDER); 
 	}
 

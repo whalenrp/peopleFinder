@@ -58,28 +58,47 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		Cursor c = null;
 		try
 		{
-			c = provider.query(Constants.CONTENT_URI,
-							   new String[] { Constants.SERVER_KEY, Constants.IP },
-							   Constants.SERVER_KEY+"="+UserData.getKey(getContext()), null, null);
+			c = provider.query(Constants.CONTENT_URI, null,
+					Constants.KEY+"="+UserData.getKey(getContext()), null, null);
 		
-			DataModel dataToSend = null;
+			DataModel dataToSend = new DataModel();
+			ConnectionType ct = UserData.getConnectionType(getContext());
 			if (c.moveToFirst())
 			{
-				dataToSend = new DataModel(c.getLong(c.getColumnIndex(Constants.SERVER_KEY)));
-				dataToSend.setIpAddress(c.getString(c.getColumnIndex(Constants.IP)));
+				dataToSend.setKey(c.getLong(c.getColumnIndex(Constants.KEY)));
+				dataToSend.setIpAddress(c.getString(c.getColumnIndex(Constants.ADDRESS)));
+				dataToSend.setConnectionType(ConnectionType.getConnectionType(
+						c.getString(c.getColumnIndex(Constants.CONN_TYPE))));
+				
+				if (ct != ConnectionType.PEER_TO_PEER)
+				{
+					dataToSend.setName(c.getString(c.getColumnIndex(Constants.NAME)));
+					dataToSend.setStatus(c.getString(c.getColumnIndex(Constants.STATUS)));
+					dataToSend.setLatitude(c.getDouble(c.getColumnIndex(Constants.LATITUDE)));
+					dataToSend.setLongitude(c.getDouble(c.getColumnIndex(Constants.LONGITUDE)));
+				}
 			}
 		
 			// Send data to server, get peer data back
 			Log.v(TAG, "Pushing ip address to server.");
-			long key = NetworkUtilities.pushDataToServer(dataToSend);
+			long key = NetworkUtilities.pushDataToServer(dataToSend, ct);
 			Log.v(TAG, "returned key: " + key);
+			
 			Log.v(TAG, "Downloading peer ip addresses.");
-			List<DataModel> returnedItems = NetworkUtilities.pullPeerAddresses(UserData.getKey(getContext()));
+			List<DataModel> returnedItems;
+			if (ct == ConnectionType.PEER_TO_PEER)
+			{
+				returnedItems = NetworkUtilities.pullPeerAddresses(UserData.getKey(getContext())); 
+			}
+			else
+			{
+				returnedItems = NetworkUtilities.pullPeerData(UserData.getKey(getContext()), ct);
+			}
 		
 			for (DataModel d : returnedItems)
 			{
-				c = provider.query(Constants.CONTENT_URI, new String[] { Constants.SERVER_KEY },
-								   Constants.SERVER_KEY+"="+d.getKey(), null, null);
+				c = provider.query(Constants.CONTENT_URI, new String[] { Constants.KEY },
+								   Constants.KEY+"="+d.getKey(), null, null);
 			
 				ContentValues cv = d.toContentValues();
 				if (!d.isMarkedRemoved() && c.getCount() == 0)
@@ -89,12 +108,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 				}
 				else if (d.isMarkedRemoved())
 				{
-					int i = provider.delete(Constants.CONTENT_URI, Constants.SERVER_KEY+"="+d.getKey(), null);
+					int i = provider.delete(Constants.CONTENT_URI, Constants.KEY+"="+d.getKey(), null);
 					Log.v(TAG, "Deleted " + i + " item(s).");
 				}
 				else
 				{
-					int i = provider.update(Constants.CONTENT_URI, cv, Constants.SERVER_KEY+"="+d.getKey(), null);
+					int i = provider.update(Constants.CONTENT_URI, cv, Constants.KEY+"="+d.getKey(), null);
 					Log.v(TAG, "Updated " + i + " item(s).");
 				}
 			}

@@ -59,39 +59,77 @@
         android:ems="10"
         android:inputType="textPersonName" />
 
-    
-
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/label_sync_freq"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sync Frequency" />
+        android:text="Sync Frequency: auto" />
 
     <RadioGroup
-        android:id="@+id/sync_freq"
+        android:id="@+id/rg_sync_freq"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="7dip"
+        android:paddingTop="5dip"
+        android:paddingBottom="5dip"
         android:orientation="horizontal" >
 
         <RadioButton
             android:id="@+id/r_auto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingRight="15dip"
             android:checked="true"
-            android:text="Automatic" />
+            android:text="Auto" />
 
         <RadioButton
-            android:id="@+id/r_fifteen"
+            android:id="@+id/r_min"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="15 min" />
+            android:paddingRight="15dip"
+            android:text="Minute" />
 
         <RadioButton
             android:id="@+id/r_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1 hour" />
+            android:text="Hour" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/network_type_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Network Type" />
+
+    <RadioGroup
+        android:id="@+id/rg_network_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dip"
+        android:paddingBottom="5dip"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/r_p2p"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="21dip"
+            android:checked="true"
+            android:text="p2p" />
+
+        <RadioButton
+            android:id="@+id/r_server"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="20dip"
+            android:text="Server" />
+
+        <RadioButton
+            android:id="@+id/r_mix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mix" />
+
     </RadioGroup>
 
     <Button

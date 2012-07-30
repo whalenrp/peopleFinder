@@ -37,12 +37,14 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	private static final String TAG = "StartupActivity";
 	
 	private long syncFreqSeconds;
+	private ConnectionType networkType;
 	
 	private EditText nameEditText;
 	private EditText statusEditText;
 	
 	private Button registerButton;
 	private RadioGroup syncGroup;
+	private RadioGroup networkGroup;
 	
 	private ProgressDialog progress;
 	
@@ -56,20 +58,46 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     nameEditText = (EditText)findViewById(R.id.s_name_edit);
 	     statusEditText = (EditText)findViewById(R.id.s_status_edit);
 	     registerButton = (Button)findViewById(R.id.register_button);
-	     syncGroup = (RadioGroup)findViewById(R.id.sync_freq);
+	     
+	     networkGroup = (RadioGroup)findViewById(R.id.rg_network_type);
+	     networkGroup.check(R.id.r_server);
+	     networkType = ConnectionType.CLIENT_SERVER;
+	     
+	     networkGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
+	     {
+			@Override
+			public void onCheckedChanged(RadioGroup group, int checkedId)
+			{
+				switch(checkedId)
+				{
+					case R.id.r_p2p:
+						networkType = ConnectionType.PEER_TO_PEER;
+						break;
+					case R.id.r_mix:
+						networkType = ConnectionType.MIXED;
+						break;
+					case R.id.r_server:
+						networkType = ConnectionType.CLIENT_SERVER;
+						break;
+				}
+			}
+		});
+	     
+	     
+	     syncGroup = (RadioGroup)findViewById(R.id.rg_sync_freq);
 	     syncGroup.check(R.id.r_auto);
 	     syncFreqSeconds = -1;
 	     
 	     // Disable if the device is running an api version lower than 8. Periodic 
 	     // syncing was not implemented until 8 and could only be simulated by 
 	     // timers, which are not implemented here. 
-	     RadioButton fifteen = (RadioButton)syncGroup.findViewById(R.id.r_fifteen);
-	     RadioButton hour = (RadioButton)syncGroup.findViewById(R.id.r_hour);
+	     RadioButton sync_min = (RadioButton)syncGroup.findViewById(R.id.r_min);
+	     RadioButton sync_hour = (RadioButton)syncGroup.findViewById(R.id.r_hour);
 	     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ECLAIR_MR1)
 	     {
 	    	 Log.i(TAG, "Phone has API Level lower than 8. Periodic syncs have been disabled.");
-	    	 fifteen.setEnabled(false);
-	    	 hour.setEnabled(false);
+	    	 sync_min.setEnabled(false);
+	    	 sync_hour.setEnabled(false);
 	     }
 	     
 	     syncGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() 
@@ -82,8 +110,8 @@ public class StartupActivity extends AccountAuthenticatorActivity
 						Log.v(TAG, "set to -1");
 						syncFreqSeconds = -1;
 						break;
-					case R.id.r_fifteen:
-						syncFreqSeconds = 15 * 60;
+					case R.id.r_min:
+						syncFreqSeconds = 60;
 						break;
 					case R.id.r_hour:
 						syncFreqSeconds = 60 * 60;
@@ -155,20 +183,28 @@ public class StartupActivity extends AccountAuthenticatorActivity
 			externalIp = NetworkUtilities.getIp();
 			DataModel d = new DataModel();
 			d.setIpAddress(externalIp);
+			d.setConnectionType(networkType);
+			if (networkType != ConnectionType.PEER_TO_PEER)
+			{
+				d.setName(nameEditText.getText().toString());
+				d.setStatus(statusEditText.getText().toString());
+			}
 			
-			return NetworkUtilities.pushDataToServer(d);
+			return NetworkUtilities.pushDataToServer(d, networkType);
 		}
 		
 		protected void onPostExecute(Long l)
 		{
 			Log.v(TAG, "new account stored with key: " + l);
 			UserData.establishKey(StartupActivity.this, l);
+			UserData.setConnectionType(StartupActivity.this, networkType);
 			
 			ContentValues cv = new ContentValues();
-			cv.put(Constants.SERVER_KEY, UserData.getKey(StartupActivity.this));
+			cv.put(Constants.KEY, UserData.getKey(StartupActivity.this));
 			cv.put(Constants.NAME, nameEditText.getText().toString());
-			cv.put(Constants.MESSAGE, statusEditText.getText().toString());
-			cv.put(Constants.IP, externalIp);
+			cv.put(Constants.STATUS, statusEditText.getText().toString());
+			cv.put(Constants.ADDRESS, externalIp);
+			cv.put(Constants.CONN_TYPE, networkType.name());
 			
 			Uri newUser = getContentResolver().insert(Constants.CONTENT_URI, cv);
 			Log.v(TAG, "New user stored at: " + newUser.toString());

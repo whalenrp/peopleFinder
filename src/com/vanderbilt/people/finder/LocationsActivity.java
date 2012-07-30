@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -35,6 +36,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	private LocationManager myLocalManager;
 	private MapView mapView;
 	private MyLocationOverlay myLocOverlay = null;
+	private Button postPositionPeers;
 
     /** Called when the activity is first created. */
     @Override
@@ -42,13 +44,19 @@ public class LocationsActivity extends MapActivity implements LocationListener
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.locations);
+        
+        postPositionPeers = (Button)findViewById(R.id.postPos);
+        if (UserData.getConnectionType(this) == ConnectionType.CLIENT_SERVER)
+        {
+        	postPositionPeers.setEnabled(false);
+        }
 
 		// init variables
 		mapView = (MapView)findViewById(R.id.map);
 
 		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
 			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
-			Constants.SERVER_KEY+"!="+UserData.getKey(this), null, null);
+			Constants.KEY+"!="+UserData.getKey(this), null, null);
 
 		initMap(myInfo);
 		myInfo.close();
@@ -58,12 +66,14 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
     }
 	
-	public void onResume(){
+	public void onResume()
+	{
 		super.onResume();
 		myLocOverlay.enableMyLocation();
 	}
 
-	public void onPause(){
+	public void onPause()
+	{
 		super.onPause();
 		myLocOverlay.disableMyLocation();
 	}
@@ -84,7 +94,8 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			// if no location, make toast telling to wait
 			// else call AsyncTask.execute()
 		mLocation = myLocOverlay.getLastFix();
-		if (!myLocalManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+		if (!myLocalManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+		{
 			buildAlertMessageNoGPS();
 		}
 		else
@@ -98,11 +109,11 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			else
 			{
 				ContentValues cv = new ContentValues(3);
-				cv.put(Constants.IP, NetworkUtilities.getIp());
+				cv.put(Constants.ADDRESS, NetworkUtilities.getIp());
 				cv.put(Constants.LATITUDE, mLocation.getLatitude());
 				cv.put(Constants.LONGITUDE, mLocation.getLongitude());
 				int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-						Constants.SERVER_KEY+"="+UserData.getKey(this), null);
+						Constants.KEY+"="+UserData.getKey(this), null);
 				Log.v(TAG, i + " item(s) updated.");
 				new SendPositionTask().execute();
 			}
@@ -238,32 +249,35 @@ public class LocationsActivity extends MapActivity implements LocationListener
 		@Override
 		protected Void doInBackground(Void... items)
 		{
-			long id = UserData.getKey(LocationsActivity.this);
+			long key = UserData.getKey(LocationsActivity.this);
 			
 			// Package user info to send via JSON to peers
-			Cursor userData = getContentResolver().query(Constants.CONTENT_URI, null,
-														 Constants.SERVER_KEY+"="+id, null, null);
-			DataModel d = new DataModel(id);
-			if (userData.moveToFirst())
+			Cursor uData = getContentResolver().query(Constants.CONTENT_URI, null,
+														 Constants.KEY+"="+key, null, null);
+			DataModel d = new DataModel();
+			if (uData.moveToFirst())
 			{
-				d.setName(userData.getString(userData.getColumnIndex(Constants.NAME)));
-				d.setStatus(userData.getString(userData.getColumnIndex(Constants.MESSAGE)));
-				d.setLatitude(userData.getDouble(userData.getColumnIndex(Constants.LATITUDE)));
-				d.setLongitude(userData.getDouble(userData.getColumnIndex(Constants.LONGITUDE)));
-				d.setIpAddress(userData.getString(userData.getColumnIndex(Constants.IP)));
+				d.setKey(key);
+				d.setName(uData.getString(uData.getColumnIndex(Constants.NAME)));
+				d.setStatus(uData.getString(uData.getColumnIndex(Constants.STATUS)));
+				d.setLatitude(uData.getDouble(uData.getColumnIndex(Constants.LATITUDE)));
+				d.setLongitude(uData.getDouble(uData.getColumnIndex(Constants.LONGITUDE)));
+				d.setIpAddress(uData.getString(uData.getColumnIndex(Constants.ADDRESS)));
+				d.setConnectionType(ConnectionType.getConnectionType(
+						uData.getString(uData.getColumnIndex(Constants.CONN_TYPE))));
 			}
-			userData.close();
+			uData.close();
 			
 			// Get list of IPs to send position to
 			Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-												  new String[]{Constants.IP},
-												  Constants.SERVER_KEY+"!="+id,
+												  new String[]{Constants.ADDRESS},
+												  Constants.KEY+"!="+key,
 												  null, null);
 			
 			List<String> ipAddresses = new ArrayList<String>();
 			while (c.moveToNext())
 			{
-				ipAddresses.add(c.getString(c.getColumnIndex(Constants.IP)));
+				ipAddresses.add(c.getString(c.getColumnIndex(Constants.ADDRESS)));
 			}
 			c.close();
 			
