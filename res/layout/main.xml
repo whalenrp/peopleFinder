@@ -50,7 +50,6 @@
         android:layout_alignBaseline="@+id/edit_text_status"
         android:layout_alignBottom="@+id/edit_text_status"
         android:layout_alignParentLeft="true"
-        android:layout_alignRight="@+id/name_label"
         android:text="Status:"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 

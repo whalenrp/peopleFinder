@@ -40,7 +40,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	private ConnectionType networkType;
 	
 	private EditText nameEditText;
-	private EditText statusEditText;
 	
 	private Button registerButton;
 	private RadioGroup syncGroup;
@@ -56,7 +55,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 	     getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, android.R.drawable.ic_dialog_alert);
 	     
 	     nameEditText = (EditText)findViewById(R.id.s_name_edit);
-	     statusEditText = (EditText)findViewById(R.id.s_status_edit);
 	     registerButton = (Button)findViewById(R.id.register_button);
 	     
 	     networkGroup = (RadioGroup)findViewById(R.id.rg_network_type);
@@ -187,7 +185,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 			if (networkType != ConnectionType.PEER_TO_PEER)
 			{
 				d.setName(nameEditText.getText().toString());
-				d.setStatus(statusEditText.getText().toString());
 			}
 			
 			return NetworkUtilities.pushDataToServer(d, networkType);
@@ -202,7 +199,6 @@ public class StartupActivity extends AccountAuthenticatorActivity
 			ContentValues cv = new ContentValues();
 			cv.put(Constants.KEY, UserData.getKey(StartupActivity.this));
 			cv.put(Constants.NAME, nameEditText.getText().toString());
-			cv.put(Constants.STATUS, statusEditText.getText().toString());
 			cv.put(Constants.ADDRESS, externalIp);
 			cv.put(Constants.CONN_TYPE, networkType.name());
 			

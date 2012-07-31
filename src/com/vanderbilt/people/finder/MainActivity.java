@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -34,10 +34,12 @@ import com.vanderbilt.people.finder.Provider.Constants;
 public class MainActivity extends FragmentActivity
 	implements LoaderManager.LoaderCallbacks<Cursor>
 {
-	private static final String[] PROJECTION = new String[] { Constants.KEY, Constants.ADDRESS };
 	private static final String TAG = "MainActivity";
-	
-	private SimpleCursorAdapter mAdapter;
+	private static final String[] PROJECTION = new String[] { Constants.KEY,
+															  Constants.NAME,
+															  Constants.STATUS,
+															  Constants.ADDRESS };
+	private CursorAdapter mAdapter;
 	private ListView mList;
 	private TextView nameLabel;
 	private EditText statusEditText;
@@ -59,11 +61,10 @@ public class MainActivity extends FragmentActivity
         nameLabel = (TextView)findViewById(R.id.name_label);
         statusEditText = (EditText)findViewById(R.id.edit_text_status);
         statusLabelText = (TextView)findViewById(R.id.status_text);
-		mList = (ListView)findViewById(R.id.list);
 		
-		// Set up Adapter
-		mAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null,
-					   new String[] { Constants.ADDRESS }, new int[] { android.R.id.text1 }, 0);
+     // Set up List and Adapter
+        mList = (ListView)findViewById(R.id.list);
+		mAdapter = new MainCursorAdapter(this);
 		mList.setAdapter(mAdapter);
 		
 

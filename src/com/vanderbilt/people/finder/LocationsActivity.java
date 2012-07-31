@@ -197,7 +197,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 				mapView.getController().animateTo(myLocOverlay.getMyLocation());
 			}
 		}); 
-		mapView.getController().setZoom(16);
+		mapView.getController().setZoom(10);
 		//add destination marker
 		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());

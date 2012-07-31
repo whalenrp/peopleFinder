@@ -45,21 +45,6 @@
     </EditText>
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Status: (optional)"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#FFFFFF" />
-
-    <EditText
-        android:id="@+id/s_status_edit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dip"
-        android:ems="10"
-        android:inputType="textPersonName" />
-
-    <TextView
         android:id="@+id/label_sync_freq"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
