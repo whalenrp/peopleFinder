@@ -186,7 +186,9 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras){}
 
-	
+	// Returns an initialized LocationOverlay containing all information
+	// required for presentation on the map, taken from the content 
+	// provider.
 	private LocationOverlay getLocationOverlay()
 	{
 		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
@@ -260,7 +262,10 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 	/**
 	 * This implementation of AsyncTask handles the transmission
-	 * of the best current position to all known peers.
+	 * of the best current position to all known peers. Will only
+	 * be used when the user is part of either a peer-to-peer or 
+	 * mixed network. The button that triggers this task will be
+	 * disabled if the user is on a server-only network.
 	 */
 	private class SendPositionTask extends AsyncTask<Void, Void, Void>
 	{
@@ -288,16 +293,25 @@ public class LocationsActivity extends MapActivity implements LocationListener
 			
 			// Get list of IPs to send position to
 			Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-												  new String[]{Constants.ADDRESS},
-												  Constants.KEY+"!="+key,
-												  null, null);
+						  new String[]{Constants.ADDRESS, Constants.CONN_TYPE},
+						  Constants.KEY+"!="+key, null, null);
 			
 			List<String> ipAddresses = new ArrayList<String>();
 			while (c.moveToNext())
 			{
-				ipAddresses.add(c.getString(c.getColumnIndex(Constants.ADDRESS)));
+				// If user is on a MIXED network, there may be db entries 
+				// for CLIENT_SERVER peers. Since they can't receive p2p
+				// connections, don't add them to the list.
+				ConnectionType ct = ConnectionType.getConnectionType(
+						c.getString(c.getColumnIndex(Constants.CONN_TYPE)));
+				if (ct != ConnectionType.CLIENT_SERVER)
+				{
+					ipAddresses.add(c.getString(c.getColumnIndex(Constants.ADDRESS)));
+				}
 			}
 			c.close();
+			
+			Log.v(TAG, "list size: " + ipAddresses.size());
 			
 			NetworkUtilities.pushDataToPeers(d, ipAddresses);
 			return null;

@@ -9,10 +9,15 @@ import android.graphics.drawable.Drawable;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 
+/**
+ * Overlay "container" that holds overlays representing peers
+ * on the map. All overlays added to this object use the same
+ * icon image. Also provides functionality to tap on individual
+ * overlays to present detailed info about them.
+ *
+ */
 public class LocationOverlay extends ItemizedOverlay<OverlayItem> 
-{
-//	private static final String TAG = "LocationOverlay";
-	
+{	
 	private Context context;
 	private ArrayList<OverlayItem> overlayList = new ArrayList<OverlayItem>();
 

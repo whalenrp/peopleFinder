@@ -46,12 +46,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 		super(context, autoInitialize);
 	}
 
-	/**
-	 * Performs the meat of the syncing operation. User's data 
-	 * (in the case of peer-to-peer, only key and IP address) is 
-	 * packaged and sent to the central remote server. Afterwards, all
-	 * peer IP addresses registered on the server are pulled down
-	 * and stored.
+	/*
+	 * Performs the meat of the syncing operation. For peer-to-peer 
+	 * users, only the minimum required data is sent to the server. 
+	 * Otherwise, the user's full data is sent. Afterwards, peer 
+	 * data is pulled from the server. The pulling is similar to
+	 * the pushing in that, for peer-to-peer, only the minimum 
+	 * is pulled, while the other connection types receive full data.
 	 */
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
@@ -71,7 +72,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 				dataToSend.setIpAddress(c.getString(c.getColumnIndex(Constants.ADDRESS)));
 				dataToSend.setConnectionType(ConnectionType.getConnectionType(
 						c.getString(c.getColumnIndex(Constants.CONN_TYPE))));
-				
+			
 				if (ct != ConnectionType.PEER_TO_PEER)
 				{
 					dataToSend.setName(c.getString(c.getColumnIndex(Constants.NAME)));
@@ -120,6 +121,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 				}
 			}
 			
+			// Let the receiver in LocationsActivity know that the content
+			// provider's data has changed.
 			Log.v(TAG, "broadcasting");
 			Intent intent = new Intent(UPDATED_PROVIDER_FILTER);
 			LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);

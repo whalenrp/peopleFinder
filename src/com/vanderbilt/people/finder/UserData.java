@@ -18,6 +18,13 @@ public final class UserData
 	
 	private UserData() {}
 	
+	/**
+	 * Sets the connection type for the app. The type of connection
+	 * determines which peers the user can "see." 
+	 * 
+	 * @param context
+	 * @param cType
+	 */
 	public static void setConnectionType(Context context, ConnectionType cType)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);
@@ -26,6 +33,10 @@ public final class UserData
 		editor.commit();
 	}
 	
+	/**
+	 * Returns the app's current connection type.
+	 * @param context
+	 */
 	public static ConnectionType getConnectionType(Context context)
 	{
 		SharedPreferences settings = context.getSharedPreferences(USER_DATA, Context.MODE_PRIVATE);

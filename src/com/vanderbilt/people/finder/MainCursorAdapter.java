@@ -10,6 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+/**
+ * Handles presentation of individual rows in the
+ * ListView in MainActivity.
+ */
 public class MainCursorAdapter extends CursorAdapter
 {
 	public MainCursorAdapter(Context context)

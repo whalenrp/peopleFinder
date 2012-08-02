@@ -154,6 +154,8 @@ public final class NetworkUtilities
 	 * requesting data. Since obtaining its own data would be
 	 * redundant, the client's data is not returned. If null, 
 	 * all data is returned, regardless of owner.
+	 * @param ct if MIXED, will pull down data on all peers. If 
+	 * CLIENT_SERVER, will pull down all except peer-to-peer.
 	 * @return
 	 */
 	public static List<DataModel> pullPeerData(Long key, ConnectionType ct)
@@ -245,6 +247,9 @@ public final class NetworkUtilities
 	 * @param d Data to be sent to the server. In peer-to-peer implementations,
 	 * only an IP address (and key, if updating) is necessary. In a central 
 	 * server model, all data should be included.
+	 * @param ct Determines how much data to push to server. If PEER_TO_PEER,
+	 * only the minimal required data will be sent. Otherwise, all user data 
+	 * is sent.
 	 * @return The server key established for this client. 
 	 * Will return -1 if the transaction was unsuccessful.
 	 */
