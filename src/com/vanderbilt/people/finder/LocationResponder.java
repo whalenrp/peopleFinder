@@ -75,43 +75,50 @@ public class LocationResponder extends Service
 					String message = convertStreamToString(server.getInputStream());
 					Log.v(TAG, message);
 					DataModel d = new DataModel();
+					Cursor c = null;
 					try
 					{
 						d = new DataModel(new JSONObject(message));
+						
+						c = getContentResolver().query(Constants.CONTENT_URI,
+		   						new String[] { Constants.KEY },
+		   						Constants.KEY+"="+d.getKey(), null, null);
+						
+						ContentValues cv = d.toContentValues();
+						if (!d.isMarkedRemoved() && c.getCount() == 0)
+						{
+							Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
+							Log.v(TAG, "Inserted: " + uri.toString());
+						}
+						else if (d.isMarkedRemoved())
+						{
+							int i = getContentResolver().delete(Constants.CONTENT_URI,
+											Constants.KEY+"="+d.getKey(), null);
+							Log.v(TAG, "Deleted " + i + "item(s).");
+						}
+						else
+						{
+							int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+											Constants.KEY+"="+d.getKey(), null);
+							Log.v(TAG, "Updated " + i + "item(s).");
+						}
+						
+						Log.v(TAG, "broadcasting");
+						Intent intent = new Intent(UPDATED_PROVIDER_FILTER);
+						LocalBroadcastManager.getInstance(LocationResponder.this).sendBroadcast(intent);
 					}
 					catch (JSONException e)
 					{
 						Log.w(TAG, "error processing incoming json: " + e.toString());
 					}
-					
-					Cursor c = getContentResolver().query(Constants.CONTENT_URI,
-	   						new String[] { Constants.KEY },
-	   						Constants.KEY+"="+d.getKey(), null, null);
+					finally
+					{
+						if (c != null)
+						{
+							c.close();
+						}
+					}
 
-					ContentValues cv = d.toContentValues();
-					if (!d.isMarkedRemoved() && c.getCount() == 0)
-					{
-						Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
-						Log.v(TAG, "Inserted: " + uri.toString());
-					}
-					else if (d.isMarkedRemoved())
-					{
-						int i = getContentResolver().delete(Constants.CONTENT_URI,
-										Constants.KEY+"="+d.getKey(), null);
-						Log.v(TAG, "Deleted " + i + "item(s).");
-					}
-					else
-					{
-						int i = getContentResolver().update(Constants.CONTENT_URI, cv,
-										Constants.KEY+"="+d.getKey(), null);
-						Log.v(TAG, "Updated " + i + "item(s).");
-					}
-					
-					Log.v(TAG, "broadcasting");
-					Intent intent = new Intent(UPDATED_PROVIDER_FILTER);
-					LocalBroadcastManager.getInstance(LocationResponder.this).sendBroadcast(intent);
-					
-					c.close();
 					server.close();
 				}
 			}
