@@ -1,6 +1,5 @@
 package com.vanderbilt.people.finder;
 
-
 import android.content.UriMatcher;
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -64,26 +63,25 @@ public class Provider extends ContentProvider
   
   @Override
   public Cursor query(Uri url, String[] projection, String selection,
-                      String[] selectionArgs, String sort) {
-    SQLiteQueryBuilder qb=new SQLiteQueryBuilder();
-    qb.setTables(TABLE);
-    String orderBy;
-    if (TextUtils.isEmpty(sort)) 
-    {
-    	orderBy=Constants.DEFAULT_SORT_ORDER;
-    }
-    else 
-    {
-    	orderBy=sort;
-    }
+                      String[] selectionArgs, String sort) 
+  {
+	  SQLiteQueryBuilder qb=new SQLiteQueryBuilder();
+	  qb.setTables(TABLE);
+	  String orderBy;
+	  if (TextUtils.isEmpty(sort)) 
+	  {
+		  orderBy=Constants.DEFAULT_SORT_ORDER;
+	  }
+	  else 
+	  {
+		  orderBy=sort;
+	  }
 
-    
-    Cursor queryCursor= qb.query(db.getReadableDatabase(), projection, selection,
-                 selectionArgs, null, null, orderBy);
-
-    queryCursor.setNotificationUri(getContext().getContentResolver(), url);
-
-    return(queryCursor);
+	  Cursor queryCursor= qb.query(db.getReadableDatabase(), projection, selection,
+             selectionArgs, null, null, orderBy);
+	  queryCursor.setNotificationUri(getContext().getContentResolver(), url);
+	  
+	  return(queryCursor);
   }
   
   @Override

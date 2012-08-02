@@ -1,35 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    >
-	<com.google.android.maps.MapView
-		 android:id="@+id/map"
-		 android:layout_width="fill_parent"
-		 android:layout_height="fill_parent"
-		 android:apiKey="0eHleoqXg53-tX_QQsCF9Ufs9YgCjlECIiuMZnw"
-		 android:clickable="true"
-		 />
-	<LinearLayout android:layout_width="fill_parent"
-		  android:layout_height="wrap_content"
-		  android:layout_alignParentBottom="true"
-		  android:weightSum="2"
-		  android:gravity="bottom">
-		<Button android:id="@+id/postPos"
-				android:text="Update My Position"
-				android:width="0dp"
-				android:layout_weight="1"
-				android:onClick="postPosition"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"/>
-		<Button android:id="@+id/refresh"
-				android:text="Refresh"
-				android:width="0dp"
-				android:onClick="refreshPeers"
-				android:layout_weight="1"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"/>
-	</LinearLayout>
-</RelativeLayout>
+    android:orientation="vertical"
+    tools:ignore="HardcodedText" >
 
+	<com.google.android.maps.MapView
+	    android:id="@+id/map"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:layout_above="@+id/postPos"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentTop="true"
+	    android:apiKey="0eHleoqXg53-tX_QQsCF9Ufs9YgCjlECIiuMZnw"
+	    android:clickable="true" />
+	
+	<Button
+	    android:id="@+id/postPos"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentLeft="true"
+	    android:layout_toLeftOf="@+id/refresh"
+	    android:onClick="postPosition"
+	    android:text="Send Data" />
+	
+	<Button
+	    android:id="@+id/refresh"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentRight="true"
+	    android:onClick="refreshPeers"
+	    android:text="Refresh" />
+
+</RelativeLayout>

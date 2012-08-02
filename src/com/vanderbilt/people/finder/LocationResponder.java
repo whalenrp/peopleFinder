@@ -16,12 +16,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-public class LocationResponder extends Service{
-	
+public class LocationResponder extends Service
+{
 	private static final String TAG = "LocationResponder";
-        /* This can be any number greater than 1000 and less then 65535*/
+	private static final String UPDATED_PROVIDER_FILTER = "com.vanderbilt.people.finder.updated-provider-filter";
+	
+	/* This can be any number greater than 1000 and less then 65535*/
 	private static final int PORT = 5567;
 	
 	@Override
@@ -86,29 +89,32 @@ public class LocationResponder extends Service{
 	   						Constants.KEY+"="+d.getKey(), null, null);
 
 					ContentValues cv = d.toContentValues();
-					if (c.getCount() == 0)
+					if (!d.isMarkedRemoved() && c.getCount() == 0)
 					{
-					Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
-					Log.v(TAG, "Inserted: " + uri.toString());
+						Uri uri = getContentResolver().insert(Constants.CONTENT_URI, cv);
+						Log.v(TAG, "Inserted: " + uri.toString());
 					}
 					else if (d.isMarkedRemoved())
 					{
-					int i = getContentResolver().delete(Constants.CONTENT_URI,
+						int i = getContentResolver().delete(Constants.CONTENT_URI,
 										Constants.KEY+"="+d.getKey(), null);
-					Log.v(TAG, "Deleted " + i + "item(s).");
+						Log.v(TAG, "Deleted " + i + "item(s).");
 					}
 					else
 					{
-					int i = getContentResolver().update(Constants.CONTENT_URI, cv,
+						int i = getContentResolver().update(Constants.CONTENT_URI, cv,
 										Constants.KEY+"="+d.getKey(), null);
-					Log.v(TAG, "Updated " + i + "item(s).");
+						Log.v(TAG, "Updated " + i + "item(s).");
 					}
+					
+					Log.v(TAG, "broadcasting");
+					Intent intent = new Intent(UPDATED_PROVIDER_FILTER);
+					LocalBroadcastManager.getInstance(LocationResponder.this).sendBroadcast(intent);
 					
 					c.close();
 					server.close();
-					Log.d(TAG, "Exited out the loop.");
 				}
-				}
+			}
 				
 			catch (IOException e) 
 			{
@@ -124,7 +130,6 @@ public class LocationResponder extends Service{
 	            return "";
 	        }
 	    }
-	
 	}
 }
 

@@ -2,19 +2,20 @@ package com.vanderbilt.people.finder;
 
 import java.util.List;
 
-import com.vanderbilt.people.finder.Provider.Constants;
-
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.RemoteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.vanderbilt.people.finder.Provider.Constants;
 
 /**
  * Class used for syncing with a central remote server.
@@ -38,6 +39,7 @@ import android.util.Log;
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
 	private static final String TAG = "SyncAdapter";
+	private static final String UPDATED_PROVIDER_FILTER = "com.vanderbilt.people.finder.updated-provider-filter";
 	
 	public SyncAdapter(Context context, boolean autoInitialize)
 	{
@@ -117,10 +119,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 					Log.v(TAG, "Updated " + i + " item(s).");
 				}
 			}
+			
+			Log.v(TAG, "broadcasting");
+			Intent intent = new Intent(UPDATED_PROVIDER_FILTER);
+			LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
-			e.printStackTrace();
+			Log.w(TAG, e.toString());
 		}
 		finally
 		{

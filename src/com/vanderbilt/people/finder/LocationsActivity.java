@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -16,28 +19,35 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
-import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
+import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.vanderbilt.people.finder.Provider.Constants;
 
 public class LocationsActivity extends MapActivity implements LocationListener
 {
 	private static final String TAG = "LocationsActivity";
+	private static final String UPDATED_PROVIDER_FILTER = "com.vanderbilt.people.finder.updated-provider-filter";
+	private static final int INITIAL_ZOOM = 17;
+	private static final String[] PROJECTION = new String[] { Constants.NAME, Constants.STATUS,
+															  Constants.LATITUDE, Constants.LONGITUDE};
 	private Location mLocation = null;
 	private LocationManager myLocalManager;
 	private MapView mapView;
 	private MyLocationOverlay myLocOverlay = null;
 	private Button postPositionPeers;
-
+	private ProviderUpdateReceiver receiver; 
+	private LocationOverlay locationOverlay;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -45,45 +55,70 @@ public class LocationsActivity extends MapActivity implements LocationListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.locations);
         
+        // Instantiate receiver. Will be registered in onResume()
+        receiver = new ProviderUpdateReceiver();
+        
+        // If only using the server, disable the Send Data button,
+        // as it is useless. 
         postPositionPeers = (Button)findViewById(R.id.postPos);
         if (UserData.getConnectionType(this) == ConnectionType.CLIENT_SERVER)
         {
         	postPositionPeers.setEnabled(false);
         }
+        
+        // Initialize location services
+        myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0, this);
+        mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-		// init variables
+        // Set up map view
 		mapView = (MapView)findViewById(R.id.map);
-
-		Cursor myInfo = getContentResolver().query(Constants.CONTENT_URI, 
-			new String[] {Constants.NAME, Constants.LATITUDE, Constants.LONGITUDE},
-			Constants.KEY+"!="+UserData.getKey(this), null, null);
-
-		initMap(myInfo);
-		myInfo.close();
-
-		myLocalManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-		myLocalManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0, this);
-		mLocation = myLocalManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		mapView.setBuiltInZoomControls(true);
+		mapView.getController().setZoom(INITIAL_ZOOM);
+		
+		List<Overlay> mapOverlays = mapView.getOverlays();
+		
+		// Initialize user location overlay
+		myLocOverlay = new MyLocationOverlay(this, mapView);
+		mapOverlays.add(myLocOverlay);	
+		myLocOverlay.runOnFirstFix(new Runnable() 
+		{
+			public void run() 
+			{
+				mapView.getController().animateTo(myLocOverlay.getMyLocation());
+			}
+		}); 
+		
+		// Initialize peer locations overlay
+		locationOverlay = getLocationOverlay();
+		mapOverlays.add(locationOverlay);
     }
-	
-	public void onResume()
+    
+    protected void onResume()
 	{
 		super.onResume();
+		
 		myLocOverlay.enableMyLocation();
+		IntentFilter filter = new IntentFilter(UPDATED_PROVIDER_FILTER);
+		LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
 	}
 
-	public void onPause()
+	protected void onPause()
 	{
 		super.onPause();
+		
 		myLocOverlay.disableMyLocation();
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 	}
 
-	///////////////////////////////////////////
-	//   Button click handlers
-	///////////////////////////////////////////
+	// Required method for MapActivity
+	protected boolean isRouteDisplayed()
+    {
+		return false;
+	}
 
 	/**
-	 * Called when the 'Update My Position' button is clicked.
+	 * Called when the 'Send Data' button is clicked.
 	 * Sends the phone's latest position fix to the other phones
 	 * in the local content provider.
 	 */
@@ -122,7 +157,7 @@ public class LocationsActivity extends MapActivity implements LocationListener
 
 	/**
 	 * Refreshes the list of peers by attempting to sync with the 
-	 * directory server.
+	 * directory server. Called when 'Refresh' button is pressed.
 	 */
 	public void refreshPeers(View view)
 	{
@@ -130,37 +165,16 @@ public class LocationsActivity extends MapActivity implements LocationListener
 									Constants.AUTHORITY, new Bundle());
 	}
 
-	// Private function for constructing a dialog in the event of no GPS
-	private void buildAlertMessageNoGPS(){
-		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Your GPS is not enabled. We need to get a fix on your location"+
-			" before we can send it to your friends. Would you like to enable GPS now?")
-			.setCancelable(false)
-			.setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-				public void onClick(DialogInterface d, int which){
-					startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-				}
-			})
-			.setNegativeButton("No", new DialogInterface.OnClickListener(){
-				public void onClick(DialogInterface dialog, int which){
-					dialog.cancel();
-				}
-			});
-		final AlertDialog alert = builder.show();
-		alert.show();
-	}
-
-	///////////////////////////////////////////
-	// BEGIN LocationListener implementations
-	///////////////////////////////////////////
+	
+	// LocationListener implementations
 	@Override
-	public void onLocationChanged(Location loc) {
+	public void onLocationChanged(Location loc)
+	{
 		mLocation = loc;
 		double latitude = loc.getLatitude();
 		double longitude = loc.getLongitude();		 
 
 		Log.v("LocationsActivity", "New coordintates: " + latitude + " " + longitude);
-		
 	}
 
 	@Override
@@ -172,72 +186,76 @@ public class LocationsActivity extends MapActivity implements LocationListener
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras){}
 
-
-	/////////////////////////////////////////////
-	//  Map rendering logic
-	/////////////////////////////////////////////
-
-	/**
-	 * Returns the geopoint associated with a given 
-	 * longitude and latitude
-	 */
-	private GeoPoint getPoint(double lat, double lon){
-		Log.v("LocationsActivity", "Latitude: " + lat + ", Longitude: " + lon);
-		return new GeoPoint((int)(lat*1000000), (int)(lon*1000000));
-	}
-
-	private void initMap(Cursor c)
-	{
-		myLocOverlay = new MyLocationOverlay(this, mapView);
-		mapView.getOverlays().add(myLocOverlay);	
-		myLocOverlay.runOnFirstFix(new Runnable() 
-		{
-			public void run() 
-			{
-				mapView.getController().animateTo(myLocOverlay.getMyLocation());
-			}
-		}); 
-		mapView.getController().setZoom(10);
-		//add destination marker
-		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
-		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
-		mapView.getOverlays().add(new SiteOverlay(marker, c));
-		c.close();
-	}
-
-
-	private class SiteOverlay extends ItemizedOverlay<OverlayItem>{
-		private List<OverlayItem> positions = new ArrayList<OverlayItem>();
-
-		public SiteOverlay(Drawable marker, Cursor c){
-			super(marker);
-			boundCenterBottom(marker);
-			while (c.moveToNext())
-			{
-				GeoPoint point = getPoint(c.getDouble(c.getColumnIndex(Constants.LATITUDE)), 
-					c.getDouble(c.getColumnIndex(Constants.LONGITUDE)));
-				positions.add(new OverlayItem(point,
-					c.getString(c.getColumnIndex(Constants.NAME)), 
-					null));
-			}
-			c.close();
-			populate();
-		}
-
-		@Override
-		public int size(){
-			return positions.size();
-		}
-
-		@Override
-		protected OverlayItem createItem(int index){
-			return positions.get(index);
-		}
-	}
 	
-	@Override
-	protected boolean isRouteDisplayed(){
-		return false;
+	private LocationOverlay getLocationOverlay()
+	{
+		Drawable marker = getResources().getDrawable(R.drawable.pushpin);
+		LocationOverlay lo = new LocationOverlay(getApplicationContext(), marker);
+		
+		Cursor c = getContentResolver().query(Constants.CONTENT_URI, PROJECTION, 
+				Constants.KEY+"!="+UserData.getKey(this), null, null);
+		
+		while (c.moveToNext())
+		{
+			String name = c.getString(c.getColumnIndex(Constants.NAME));
+			String status = c.getString(c.getColumnIndex(Constants.STATUS));
+			double latitude = c.getDouble(c.getColumnIndex(Constants.LATITUDE));
+			double longitude = c.getDouble(c.getColumnIndex(Constants.LONGITUDE));
+			
+			OverlayItem oItem = getOverlayItem(name, status, latitude, longitude);
+			lo.addOverlay(oItem);
+		}
+		c.close();
+		
+		return lo;
+	}
+
+	private OverlayItem getOverlayItem(String name, String status, double lat, double lon)
+	{
+		GeoPoint gp = new GeoPoint((int)(lat*1000000), (int)(lon*1000000));
+		return new OverlayItem(gp, name, status);
+	}
+
+	// Private function for constructing a dialog in the event of no GPS
+	private void buildAlertMessageNoGPS()
+	{
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Your GPS is not enabled. We need to get a fix on your location"+
+			" before we can send it to your friends. Would you like to enable GPS now?")
+			.setCancelable(false)
+			.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface d, int which)
+				{
+					startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+				}
+			})
+			.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int which)
+				{
+					dialog.cancel();
+				}
+			});
+		builder.show();
+	}
+
+	private class ProviderUpdateReceiver extends BroadcastReceiver
+	{
+		@Override
+		public void onReceive(Context context, Intent intent) 
+		{
+			Log.v(TAG, "Refreshing overlays.");
+			
+			// Remove current LocationOverlay, give it updated
+			// data, then re-add it.
+			mapView.getOverlays().remove(locationOverlay);
+			locationOverlay = getLocationOverlay();
+			mapView.getOverlays().add(locationOverlay);
+			
+			// Request re-drawing of map.
+			mapView.invalidate();
+		}
 	}
 
 	/**
