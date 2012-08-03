@@ -5,11 +5,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class PeopleDB extends SQLiteOpenHelper
+public class PeopleDataHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME="location.db";
     
-    public PeopleDB(Context context)
+    public PeopleDataHelper(Context context)
     {
     	super(context, DATABASE_NAME, null, 1);
 

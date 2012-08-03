@@ -47,7 +47,7 @@ public class Provider extends ContentProvider
 		MATCHER.addURI("com.vanderbilt.people.finder.Provider", "locations/#", LOCATION_ID);
   }
 
-  private PeopleDB db = null;
+  private PeopleDataHelper db = null;
   
     /* Creates the DB inside the content provider
      * Returns True if it succeded and false otherwise
@@ -56,7 +56,7 @@ public class Provider extends ContentProvider
   public boolean onCreate() 
   {
 	  
-	  db=new PeopleDB(getContext());
+	  db=new PeopleDataHelper(getContext());
 	  db.getWritableDatabase();
 	  return((db == null) ? false : true);
   }
